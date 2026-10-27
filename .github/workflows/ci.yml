@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # weekly: catch breakage from new dependency releases
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [default, py312, py313]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          environments: ${{ matrix.environment }}
+      - run: pixi run -e ${{ matrix.environment }} test

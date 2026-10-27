@@ -1,0 +1,26 @@
+{
+  "name": "dyscolab",
+  "owner": {
+    "name": "Dyscolab",
+    "url": "https://github.com/dyscolab"
+  },
+  "metadata": {
+    "description": "Agent skills for the Dyscolab scientific Python libraries (poincare, simbio, jablonski)",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "dyscolab",
+      "displayName": "Dyscolab modeling",
+      "description": "Declare, simulate and analyse ODE, reaction-network and photophysics models with poincare, simbio and jablonski",
+      "version": "1.0.0",
+      "license": "MIT",
+      "homepage": "https://github.com/dyscolab/skills",
+      "repository": "https://github.com/dyscolab/skills",
+      "keywords": ["modeling", "ode", "chemical-kinetics", "photophysics", "sbml", "science"],
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/dyscolab-modeling"]
+    }
+  ]
+}
