@@ -103,15 +103,23 @@ Declare (a symbolic class) → `Simulator` (compiles once) → `with_values` / `
 The stages form a menu, not a pipeline. Do only the requested stage, plus the minimum proof
 that it works:
 
-- **"Declare / write a model"** → the model, plus a short script or notebook cell with one
-  example simulation (a plot or a printed table). No sweeps, fits, steady-state scans,
-  reports or literature comparison.
+- **"Declare / write a model"** → the model plus proof that it works. Prefer a notebook:
+  1. One cell with a **model report**: `notebook_report(Model)` from `poincare.printing`
+     renders the equations, variables and parameters.
+  2. One cell with a short example simulation and a plot.
+
+  In a plain script, `print(model_report(Model))` instead. No sweeps, fits,
+  steady-state scans or literature comparison.
 - **"Simulate X"** → that simulation and one plot or summary.
 - **Steady state / sweep / oscillation / fit / report** → only when asked
   ([analysis.md](references/analysis.md)).
 - **Compare with data only when the user provides data.** Never search the literature or
   digitize published figures unprompted. Label missing parameter values as placeholders
   instead of researching them.
+- Reports of a `Compartment` with a constant `Volume` crash (both `notebook_report` and
+  `model_report`). Give the volume a zero-rate equation:
+  `growth_rate: Parameter = assign(default=0 * u.pL / u.s)` and
+  `growth = V.derive() << growth_rate`.
 - Cheap sanity checks belong to every model: consistent units, conserved totals, one
   limiting case. Report them in a line, not a separate analysis.
 
@@ -122,7 +130,7 @@ Stages, when they are requested:
 3. Simulate.
 4. Analyse: steady states, sweeps, bistability, oscillations, fits, stochastic runs.
 5. Compare with the user's data.
-6. Report (`model_report` LaTeX).
+6. Report: `notebook_report` in notebooks, `model_report` for LaTeX documents.
 
 ## Files
 

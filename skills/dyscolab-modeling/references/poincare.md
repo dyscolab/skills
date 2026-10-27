@@ -179,12 +179,22 @@ display, save figures (`plt.savefig(...)`) instead of calling `plt.show()`, or s
 - `Model.k.default` (parameters and constants) and `Model.x.initial` (variables) give the
   declared defaults, which is useful for analytic checks.
 - `Model.variables` and `Model.parameters` return `xarray.DataArray`s of components.
+- `poincare.printing.notebook_report(Model, show=True)` renders a Markdown report with
+  equations, a variable table and a parameter table in Jupyter or marimo. With
+  `show=False` it returns the Markdown string. It works for simbio and jablonski models
+  too. Requires poincare newer than 1.2.0 (not on PyPI yet).
+- **Report bug (1.2.0 and current main):** reports crash with `TypeError: 'NoneType' object cannot be interpreted as an integer`
+  when a variable has no equation but appears in other equations. Typically this is a
+  constant `Volume` in a simbio `Compartment` with amount species. Give it a zero-rate
+  equation through a `Parameter` (`V.derive() << growth_rate`, default `0 * u.pL / u.s`).
+  An inline quantity (`V.derive() << 0 * u.pL / u.s`) breaks the report too.
 - `model_report(Model, path=None, transform={Model.k: "k_1"}, descriptions=None,
   standalone=True, replace_algebraics=False)` returns (or writes to `path`) a LaTeX report
   with equations, a variable table and a parameter table.
   - simbio's `model_report` adds a reactions section.
   - jablonski's (`jablonski.plots.model_report`) adds a Jablonski diagram.
 - Lower-level LaTeX helpers live in `poincare.printing.latex`: `latex_equations`,
-  `parameter_table`, `variable_table`, `ToLatex`.
+  `parameter_table`, `variable_table`, `ToLatex`. On newer poincare they take
+  `format="latex" | "markdown"`.
 - `poincare.helpers.get_from("sub.k", Model)` resolves a dotted name to a component, and
   `to_values({"sub.k": 2}, Model)` turns a dict of dotted names into a `with_values` mapping.

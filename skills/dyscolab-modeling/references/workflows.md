@@ -4,7 +4,7 @@
 
 | Request | Deliver | Don't add |
 | --- | --- | --- |
-| "Declare / write / implement a model of X" | The model, plus a short script or notebook cell that runs one example simulation and shows it works (a plot or a printed table) | Sweeps, fits, steady-state scans, reports, comparisons with literature |
+| "Declare / write / implement a model of X" | The model, plus proof that it works: a model report (`notebook_report` in a notebook) and one short example simulation with a plot | Sweeps, fits, steady-state scans, comparisons with literature |
 | "Simulate X" (under conditions Y) | Model (if missing), that simulation, one plot or summary | Extra scenarios nobody asked for |
 | "Find the steady state / sweep / bifurcation / period" | That analysis on the existing model | Fits, reports |
 | "Fit to this data" | Fit using the data the user supplied | Data the user did not supply |
@@ -18,6 +18,30 @@
   cheap: check that units are consistent, that conserved totals stay constant, and run one
   limiting case with a known answer. Report the outcome in one line.
 - When the user later asks for more, build on the existing files rather than starting over.
+
+## Showing that a declared model works
+
+A model report is the quickest way for the user to check that the code matches the
+equations they had in mind. Prefer a notebook (Jupyter or marimo) with:
+
+```python
+# cell 1: the report (renders Markdown + LaTeX in Jupyter and marimo)
+from poincare.printing import notebook_report
+notebook_report(MyModel)
+
+# cell 2: one example simulation
+result = sim.solve(save_at=...)
+result.pint.dequantify().to_dataframe().plot()
+```
+
+- `notebook_report(Model, show=False)` returns the Markdown string instead of displaying
+  it, for example to save it to a `.md` file.
+- jablonski models also have `jablonski.plots.jablonski_diagram(Model)`, which is a useful
+  extra cell.
+- In scripts, `print(model_report(Model))` gives the LaTeX source, or use
+  `model_report(Model, path="model.tex")`.
+- For a larger model in `model.py`, the notebook imports it (see File layout below), so the
+  report always reflects the current model file.
 
 ## File layout
 

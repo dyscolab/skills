@@ -19,6 +19,7 @@ of the public API just like package `__init__` exports.
 | `poincare.reactions` | `Reactant`, `reaction_initial`, `RateLaw`, `MassAction`, `AbsoluteRateLaw` | [simbio.md](simbio.md#reactions) |
 | `poincare.reactions.rebop` | `RebopSimulator` | [analysis.md](analysis.md#stochastic-simulation-rebop) |
 | `poincare.printing.latex` | `model_report`, `latex_equations`, `parameter_table`, `variable_table`, `ToLatex` | [poincare.md](poincare.md#reports-and-introspection) |
+| `poincare.printing` (newer than 1.2.0) | `notebook_report`, `model_report`, `latex_equations`, `parameter_table`, `variable_table` | [poincare.md](poincare.md#reports-and-introspection) |
 | `poincare.helpers` | `get_from`, `to_values` | [poincare.md](poincare.md#reports-and-introspection) |
 
 ## simbio
