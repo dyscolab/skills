@@ -205,6 +205,10 @@ Model.k1, Model.X                                    # components named after SB
   - Needs `networkx`.
 - `simbio.model_report(Model, path=None, ...)` gives a LaTeX report with a reactions section
   (same arguments as poincare's).
+- `simbio.notebook_report(Model, show=True, ...)` is the notebook version (Jupyter or
+  marimo): reactions, then equations, variables and parameters, as Markdown (same arguments
+  as `poincare.printing.notebook_report`). Requires simbio and poincare newer than the
+  current PyPI releases.
 - `from simbio.rebop import RebopSimulator` runs Gillespie simulations. See
   [analysis.md](analysis.md#stochastic-simulation-rebop). Copy numbers must be unitless
   integers.

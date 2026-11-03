@@ -179,10 +179,17 @@ display, save figures (`plt.savefig(...)`) instead of calling `plt.show()`, or s
 - `Model.k.default` (parameters and constants) and `Model.x.initial` (variables) give the
   declared defaults, which is useful for analytic checks.
 - `Model.variables` and `Model.parameters` return `xarray.DataArray`s of components.
-- `poincare.printing.notebook_report(Model, show=True)` renders a Markdown report with
-  equations, a variable table and a parameter table in Jupyter or marimo. With
-  `show=False` it returns the Markdown string. It works for simbio and jablonski models
-  too. Requires poincare newer than 1.2.0 (not on PyPI yet).
+- `poincare.printing.notebook_report(Model, transform=None, descriptions=None,
+  replace_algebraics=False, sections=default_notebook_sections, level=2, show=True)`
+  renders a Markdown report with equations, a variable table and a parameter table in
+  Jupyter or marimo. It takes the same `transform`, `descriptions` and `replace_algebraics`
+  as `model_report`. With `show=False` it returns the Markdown string. `level` is the
+  heading level of the section titles. Requires poincare newer than 1.2.0 (not on PyPI yet).
+  - `sections` maps titles to writers `(model, latex) -> str` that return Markdown, where
+    `latex` is the shared `ToLatex`. Extend the defaults with
+    `default_notebook_sections | {"Notes": lambda model, latex: "..."}`.
+  - simbio's `notebook_report` adds a reactions section and jablonski's
+    (`jablonski.plots.notebook_report`) a Jablonski diagram. Use those for their models.
 - **Report bug (1.2.0 and current main):** reports crash with `TypeError: 'NoneType' object cannot be interpreted as an integer`
   when a variable has no equation but appears in other equations. Typically this is a
   constant `Volume` in a simbio `Compartment` with amount species. Give it a zero-rate

@@ -26,8 +26,8 @@ equations they had in mind. Prefer a notebook (Jupyter or marimo) with:
 
 ```python
 # cell 1: the report (renders Markdown + LaTeX in Jupyter and marimo)
-from poincare.printing import notebook_report
-notebook_report(MyModel)
+from poincare.printing import notebook_report  # simbio: from simbio import notebook_report
+notebook_report(MyModel)                       # jablonski: from jablonski.plots import notebook_report
 
 # cell 2: one example simulation
 result = sim.solve(save_at=...)
@@ -36,8 +36,9 @@ result.pint.dequantify().to_dataframe().plot()
 
 - `notebook_report(Model, show=False)` returns the Markdown string instead of displaying
   it, for example to save it to a `.md` file.
-- jablonski models also have `jablonski.plots.jablonski_diagram(Model)`, which is a useful
-  extra cell.
+- simbio's `notebook_report` starts with a reactions section, and jablonski's
+  (`jablonski.plots.notebook_report`) starts with the Jablonski diagram, so use the one from
+  the library the model is built with.
 - In scripts, `print(model_report(Model))` gives the LaTeX source, or use
   `model_report(Model, path="model.tex")`.
 - For a larger model in `model.py`, the notebook imports it (see File layout below), so the

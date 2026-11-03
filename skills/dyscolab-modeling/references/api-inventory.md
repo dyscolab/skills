@@ -19,14 +19,14 @@ of the public API just like package `__init__` exports.
 | `poincare.reactions` | `Reactant`, `reaction_initial`, `RateLaw`, `MassAction`, `AbsoluteRateLaw` | [simbio.md](simbio.md#reactions) |
 | `poincare.reactions.rebop` | `RebopSimulator` | [analysis.md](analysis.md#stochastic-simulation-rebop) |
 | `poincare.printing.latex` | `model_report`, `latex_equations`, `parameter_table`, `variable_table`, `ToLatex` | [poincare.md](poincare.md#reports-and-introspection) |
-| `poincare.printing` (newer than 1.2.0) | `notebook_report`, `model_report`, `latex_equations`, `parameter_table`, `variable_table` | [poincare.md](poincare.md#reports-and-introspection) |
+| `poincare.printing` (newer than 1.2.0) | `notebook_report`, `default_notebook_sections`, `model_report`, `latex_equations`, `parameter_table`, `variable_table` | [poincare.md](poincare.md#reports-and-introspection) |
 | `poincare.helpers` | `get_from`, `to_values` | [poincare.md](poincare.md#reports-and-introspection) |
 
 ## simbio
 
 | Module | Names | Reference |
 | --- | --- | --- |
-| `simbio` | re-exports from poincare (`System`, `Variable`, `Parameter`, `Constant`, `Independent`, `Simulator`, `initial`, `assign`, `Reactant`, `reaction_initial`, `RateLaw`, `MassAction`, `AbsoluteRateLaw`) plus `Compartment`, `Species`, `Volume`, `amount`, `concentration`, `volume`, `reaction_amount`, `reaction_concentration`, `model_report` | [simbio.md](simbio.md) |
+| `simbio` | re-exports from poincare (`System`, `Variable`, `Parameter`, `Constant`, `Independent`, `Simulator`, `initial`, `assign`, `Reactant`, `reaction_initial`, `RateLaw`, `MassAction`, `AbsoluteRateLaw`) plus `Compartment`, `Species`, `Volume`, `amount`, `concentration`, `volume`, `reaction_amount`, `reaction_concentration`, `model_report`, `notebook_report` (newer than the PyPI release) | [simbio.md](simbio.md) |
 | `simbio.reactions` (`.single`, `.compound`, `.enzymatic`) | `Creation`, `AutoCreation`, `Destruction`, `Conversion`, `Synthesis`, `Dissociation`, `ReversibleSynthesis`, `Equilibration`, `CatalyzeConvert`, `MichaelisMenten`, `MichaelisMentenEqApprox`, `MichaelisMentenQuasiSSAprox` | [simbio.md](simbio.md#reaction-motifs) |
 | `simbio.io.sbml` | `load`, `loads` (Python ≥ 3.14 with 1.2.0) | [simbio.md](simbio.md#sbml-biomodels-and-mathml) |
 | `simbio.io.biomodels` | `load` | same |
@@ -46,7 +46,7 @@ of the public API just like package `__init__` exports.
 | `jablonski.sweeps` | `sweep_emission_spectra`, `sweep_spectral_steady_state_emission` | [jablonski.md](jablonski.md#sweeps) |
 | `jablonski.util` | `emission_transitions`, `excitation_transitions`, `SpectraKind` | [jablonski.md](jablonski.md#plots-reports-and-helpers) |
 | `jablonski.helpers` | `pump_from_laser`, `h`, `c` | same |
-| `jablonski.plots` | `jablonski_diagram`, `graph_spectra`, `model_report` | same |
+| `jablonski.plots` | `jablonski_diagram`, `graph_spectra`, `model_report`, `notebook_report` (newer than the PyPI release) | same |
 | `jablonski.rebop` | `RebopSimulator`, `rebop_piecewise` | [jablonski.md](jablonski.md#stochastic-runs) |
 
 ## Internal helpers (don't use)
@@ -54,7 +54,7 @@ of the public API just like package `__init__` exports.
 These are importable but are implementation details, are dead code, or exist only to
 support the functions above: `jablonski.simulation.lines_to_energies`,
 `jablonski.rebop.rebop.distribute_points`, `jablonski.plots.plots.get_column`,
-`sort_by_multiplicity`, `jablonski_diagram_section`, `color_code_etu`, `jablonski.util.convert`
+`sort_by_multiplicity`, `jablonski_diagram_section`, `jablonski_diagram_markdown`, `color_code_etu`, `jablonski.util.convert`
 (dead code: it references undefined names), `simbio.core.first_system_parent`,
 `is_instance_or_subclass`, `simbio.io.sbml.substitute_by_name.call_substitute_by_name` /
 `value_substitute_by_name`, `poincare.compile.*` (compiler internals),

@@ -105,7 +105,9 @@ that it works:
 
 - **"Declare / write a model"** → the model plus proof that it works. Prefer a notebook:
   1. One cell with a **model report**: `notebook_report(Model)` from `poincare.printing`
-     renders the equations, variables and parameters.
+     renders the equations, variables and parameters. For simbio models use
+     `simbio.notebook_report` (adds the reactions), for jablonski models
+     `jablonski.plots.notebook_report` (adds the Jablonski diagram).
   2. One cell with a short example simulation and a plot.
 
   In a plain script, `print(model_report(Model))` instead. No sweeps, fits,

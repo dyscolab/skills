@@ -235,7 +235,11 @@ Check it against `k_r / Σk` for the emitting state.
 - `jablonski.plots.graph_spectra(sim, excitation, unit=, kind=, samples=, width=)` plots a
   wavelength-coloured broadened spectrum.
 - `jablonski.plots.model_report(Model, path=None, ...)` gives a LaTeX report with a
-  Jablonski diagram (PGF).
+  Jablonski diagram (PGF) as the first section.
+- `jablonski.plots.notebook_report(Model, show=True, ...)` is the notebook version (Jupyter
+  or marimo): the Jablonski diagram as an embedded PNG image, then equations, variables
+  and parameters (same arguments as `poincare.printing.notebook_report`). Requires
+  jablonski and poincare newer than the current PyPI releases.
 - `jablonski.util.emission_transitions(Model, kind=)` and `excitation_transitions(Model)`
   yield the radiative and pumped transitions.
 - `jablonski.helpers.h` and `c` are the Planck constant and speed of light as quantities
