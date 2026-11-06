@@ -167,7 +167,8 @@ These need `pip install "simbio[io]"`, which provides `python-libsbml` and `biom
 
 **Known 1.2.0 bug:** `simbio.io.sbml` and `simbio.io.mathML` fail at import on
 Python < 3.14 (`NameError: name 'types' is not defined`). Use Python 3.14, or tell the user
-that SBML import needs a newer simbio or Python.
+that SBML import needs a newer simbio or Python. Fixed in newer simbio (not on PyPI yet),
+which also fixes the import of MathML function definitions.
 
 ```python
 from simbio.io import sbml, biomodels
@@ -194,7 +195,8 @@ Model.k1, Model.X                                    # components named after SB
 - MathML helpers (low level, libsbml AST ↔ symbolite): `simbio.io.mathML.to_mathML(expr)`
   and `simbio.io.mathML.mathMLImporter().convert(node)`.
 - `simbio.io.sbml.substitute_by_name.substitute_by_name(expr, **{"name": value})`
-  substitutes symbols by name in an expression.
+  substitutes symbols by name in an expression. In newer simbio the module moved to
+  `simbio.io.substitute_by_name`.
 
 ## Graphs, reports, stochastic runs
 
@@ -209,6 +211,8 @@ Model.k1, Model.X                                    # components named after SB
   marimo): reactions, then equations, variables and parameters, as Markdown (same arguments
   as `poincare.printing.notebook_report`). Requires simbio and poincare newer than the
   current PyPI releases.
+- `simbio.latex.latex_reactions(Model)` returns only the reactions block as LaTeX. Newer
+  simbio takes `format="markdown"` for `$$` display math.
 - `from simbio.rebop import RebopSimulator` runs Gillespie simulations. See
   [analysis.md](analysis.md#stochastic-simulation-rebop). Copy numbers must be unitless
   integers.

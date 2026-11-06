@@ -60,7 +60,13 @@ create a `pint.UnitRegistry()`, even though some older tutorials do.
     converted with pint's `"spectroscopy"` context. **A zero energy must be given in eV**
     (`0 * u.eV`), because `0 / u.cm` raises `ZeroDivisionError`.
   - State populations are usually unitless (fractions or relative numbers).
-- **rebop stochastic runs:** only `upto_t` may carry units. Variable values must be plain
-  integers.
+- **rebop stochastic runs:** variable values must be plain integers (copy numbers).
+  Rate parameters and `upto_t` may carry units.
+- **Removing units (newer than poincare 1.2.0):** `poincare.strip_units(Model)` returns a
+  copy of a model class (or instance) with every quantity replaced by its magnitude in SI
+  base units, as the simulator uses internally. The removed units are kept in
+  `Stripped._units` (`{component: base unit or None}`). Use it to run a model with units
+  through code that needs plain numbers. Times, values and results are then in base units
+  (s, mol/m³, …), not the declared units.
 - **SteadyState** results keep variable units, but the reported `time` is a plain number in
   base units.

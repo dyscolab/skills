@@ -94,7 +94,8 @@ and a folder for the *user's* data files.
   motifs, coupling terms) that are instantiated with keyword links. Avoid copy-pasting
   equations.
 - **Name states and transitions physically** (`Er_4S3_2`, `etu_13`, `green_decay`). The
-  names become the output columns and the `line_<name>` emission keys.
+  names become the output columns and the per-line keys (`line_<name>` in jablonski 0.4.0,
+  `emission_<name>` / `absorption_<name>` in newer versions).
 
 ## Running experiments
 

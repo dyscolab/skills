@@ -26,8 +26,10 @@ and share the same simulator, units and analysis tools.
 
    If they are missing, install them with `pip install poincare simbio jablonski`. Add
    `"simbio[io]"` for SBML and `rebop` for stochastic runs, and use the project's own
-   environment manager when there is one. If a newer version is installed and something
-   here fails, read the installed source; it wins over this skill.
+   environment manager when there is one. Notes marked "newer than" a release describe the
+   libraries' `main` branches (installed from GitHub), which add features and change a few
+   names. If a newer version is installed and something here fails, read the installed
+   source; it wins over this skill.
 2. **Pick the library.**
 
    | The system is… | Use | Reference |
@@ -67,7 +69,10 @@ Declare (a symbolic class) → `Simulator` (compiles once) → `with_values` / `
 
 - **Equations for the same derivative add up.** Write one equation per process.
 - **`Simulator` is immutable.** `with_*` returns a new one. Set the solver only with
-  `.with_solver(...)`: in 1.2.0, `Simulator(..., solver=...)` is silently ignored.
+  `.with_solver(...)`: in 1.2.0, `Simulator(..., solver=...)` is silently ignored, and
+  newer versions reject it.
+- **Integration starts at `save_at[0]`** (the time span is inferred from `save_at`), so
+  the initial values belong to that time. Start `save_at` at 0 when they belong to t = 0.
 - **The default tolerances (rtol 1e-3) are too loose for quantitative work**, and steady
   states inherit them. Use `solvers.LSODA(rtol=1e-8, atol=...)` with `atol` far below the
   smallest value you care about, **measured in SI base units** (1 pL = 1e-15 m³ and
@@ -94,7 +99,13 @@ Declare (a symbolic class) → `Simulator` (compiles once) → `with_values` / `
   - A zero state energy must be `0 * u.eV`.
   - **Never put a `piecewise` event at exactly t = 0** (0.4.0 applies it late). Start at a
     small positive time, or set always-on excitation with `with_values`.
-  - Simulation helpers are named `*_emission` in 0.4.0.
+  - Simulation helpers are named `*_emission` in 0.4.0. Newer versions add generic names
+    (`spectral_time_resolved`, `spectra`, `quantum_yield`, …) and keep the `*_emission`
+    ones.
+  - **Renamed after 0.4.0:** per-line outputs `line_<transition>` became
+    `emission_<transition>`, and `EnergyTransferUpconversion4` became
+    `EnergyTransferUpconversion`. See [references/jablonski.md](references/jablonski.md)
+    for code that runs on both.
 - **Sweeps:** use the loop `xr.concat([SteadyState().solve(sim.with_values({M.p: v})).isel(time=-1) for v in vals], dim="p")`.
   The built-in `SteadyState.sweep` fails with units on variables or with transforms.
 
@@ -118,8 +129,8 @@ that it works:
 - **Compare with data only when the user provides data.** Never search the literature or
   digitize published figures unprompted. Label missing parameter values as placeholders
   instead of researching them.
-- Reports of a `Compartment` with a constant `Volume` crash (both `notebook_report` and
-  `model_report`). Give the volume a zero-rate equation:
+- In poincare 1.2.0, reports of a `Compartment` with a constant `Volume` crash
+  (`model_report`; fixed in newer versions). Give the volume a zero-rate equation:
   `growth_rate: Parameter = assign(default=0 * u.pL / u.s)` and
   `growth = V.derive() << growth_rate`.
 - Cheap sanity checks belong to every model: consistent units, conserved totals, one
@@ -158,7 +169,7 @@ reusable subsystems): [references/workflows.md](references/workflows.md).
 - [references/simbio.md](references/simbio.md): reactions, motifs, compartments, SBML,
   BioModels, graphs.
 - [references/jablonski.md](references/jablonski.md): states, transitions, custom
-  transitions, excitation, spectra, quantum yields.
+  transitions, excitation, spectra, quantum yields, fits.
 - [references/workflows.md](references/workflows.md): scope, file layout, conventions,
   validation.
 - [references/api-inventory.md](references/api-inventory.md): every public name in these

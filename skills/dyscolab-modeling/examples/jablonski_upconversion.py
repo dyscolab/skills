@@ -3,7 +3,7 @@
 Shows the conventions of larger photophysics models:
 - literature-style parameters with units, one place to change them
 - a derived pump (photon flux from power density and wavelength)
-- energy transfer between ions with EnergyTransferUpconversion4
+- energy transfer between ions with the four-state energy transfer upconversion
 - a CW power sweep with SteadyState (loop + xr.concat)
 - a laser pulse switched on and off with `piecewise` events on any parameter
 
@@ -18,12 +18,12 @@ import xarray as xr
 from jablonski import Parameter, Simulator, SingletState, SpectroscopicSystem, assign, initial
 from jablonski.helpers import c, h
 from jablonski.simulation import piecewise
-from jablonski.transitions import (
-    Absorption,
-    EnergyTransferUpconversion4,
-    Fluorescence,
-    InternalConversion,
-)
+from jablonski.transitions import Absorption, Fluorescence, InternalConversion
+
+try:  # jablonski 0.4.0: the four-state ETU is EnergyTransferUpconversion4
+    from jablonski.transitions import EnergyTransferUpconversion4 as EnergyTransferUpconversion
+except ImportError:  # newer jablonski renamed it to EnergyTransferUpconversion
+    from jablonski.transitions import EnergyTransferUpconversion
 from poincare import SteadyState, solvers
 
 u = pint.get_application_registry()
@@ -56,12 +56,13 @@ class YbEr(SpectroscopicSystem):
 
     yb_absorption = Absorption(ground=Yb1, excited=Yb2, rate=yb_cross_section, pump=photon_flux)
     yb_decay = Fluorescence(excited=Yb2, ground=Yb1, rate=k_yb)
-    # EnergyTransferUpconversion4 requires E(sens_high) + E(act_low) >= E(sens_low) + E(act_high);
-    # endothermic (phonon-assisted) transfers need a custom transition (see references/jablonski.md).
-    etu1 = EnergyTransferUpconversion4(
+    # jablonski 0.4.0 requires E(sens_high) + E(act_low) >= E(sens_low) + E(act_high)
+    # (newer versions drop this check); endothermic (phonon-assisted) transfers with a
+    # temperature-dependent rate need a custom transition (see references/jablonski.md).
+    etu1 = EnergyTransferUpconversion(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er1, activator_high=Er3, rate=k_etu1
     )
-    etu2 = EnergyTransferUpconversion4(
+    etu2 = EnergyTransferUpconversion(
         sensitizer_high=Yb2, sensitizer_low=Yb1, activator_low=Er3, activator_high=Er7, rate=k_etu2
     )
     er3_decay = Fluorescence(excited=Er3, ground=Er1, rate=k_er3)

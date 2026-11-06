@@ -24,8 +24,8 @@ ss["x"].item(), ss["event"].item()                    # event == 0 → converged
 ```
 
 - Pass parameter values through `sim.with_values(...)`. `SteadyState.solve` also accepts
-  `values=` in 1.2.0, but newer poincare removes it, so the `with_values` form is the
-  portable one.
+  `values=` in 1.2.0, but newer poincare removes it (`TypeError`), so the `with_values`
+  form is the portable one.
 - `SteadyState(condition=SmallDerivatives(), t_end=<float max>)` integrates until every
   derivative is small, then stops. The result has one time point plus an `event` column.
 - **Accuracy follows the solver tolerances.** The default condition stops when
@@ -36,7 +36,9 @@ ss["x"].item(), ss["event"].item()                    # event == 0 → converged
   that reaches `t_end` without converging raises an obscure
   `ValueError: could not broadcast input array ...`** instead of returning `event != 0`.
   This happens for oscillating or slowly drifting systems. Catch it, then simulate
-  a time course or use `Oscillations`.
+  a time course or use `Oscillations`. An `atol` too small for the solver to reach the
+  convergence condition fails the same way, or with
+  `IndexError: index 0 is out of bounds` (newer versions). Loosen `atol` slightly.
 - A steady state from integration depends on the initial condition (multistability).
   Set the initial values with `with_values` to pick a branch.
 
@@ -134,6 +136,53 @@ fit[Model.k]
 - If the data are on a different time grid than you want to simulate, `make_target` still
   defines the time points of the residual.
 
+**Newer than 1.2.0 (reworked fits):**
+
+- `fit_result(sim, target, p0=, scale=, sigma=None, **kwargs)` returns a `FitResult`. It is
+  still a dict `{component: best value}`, so the code above works unchanged, and adds the
+  covariance in `.pcov`:
+
+  ```python
+  fit[Model.k]                       # best value (quantity if the model has units)
+  fit.pcov[Model.k, Model.k] ** 0.5  # standard error, in the units of k
+  np.asarray(fit.pcov)               # plain matrix, ordered as fit.pcov.parameters
+  ```
+
+  - `sigma=` takes the experimental standard deviations in the same form as the target
+    (for example `make_target({Model.x: err * u.mM}, save_at=t)`). Residuals are divided by
+    it and the covariance treats it as absolute. Without `sigma`, the noise is estimated
+    from the residuals, as in `scipy.optimize.curve_fit`.
+  - Warnings: `ToleranceWarning` (solver `rtol`/`atol` too loose for finite differences;
+    tighten them or pass `diff_step=1e-4`) and `CovarianceWarning` (a parameter ended at a
+    bound, or parameters the data cannot separate). Both are in `poincare.analysis.fits`.
+- `make_target` is also exported from `poincare.analysis`.
+- `fit_steady_state(sim, SteadyState(), Model.p, target, p0=...)` fits steady states. The
+  target's coordinate holds the values of `Model.p` that the data were measured at, as in
+  `xr.Dataset({"x": ("p", x_ss)}, coords={"p": p_values})`. It runs `SteadyState().sweep`
+  internally, so the sweep's limitations apply (no units on state variables).
+- `Fitter` fits several datasets at once with shared parameters. Use one simulation
+  function per target:
+
+  ```python
+  from poincare.analysis import Fitter, make_target
+
+  fitter = Fitter(
+      sim,
+      [lambda s: s.solve(save_at=t1),
+       lambda s: s.with_values({Model.x: 2.0}).solve(save_at=t2)],   # second experiment
+      [make_target({Model.x: x1}, t1), make_target({Model.x: x2}, t2)],
+      p0={Model.k: (0.5, 0, 5)},
+      sigma=None,          # or one sigma per target
+  )
+  fit = fitter.fit()       # fit(p0=...) overrides guesses or bounds for one run
+  ```
+
+  A simulation function may return a Dataset (compared variable by variable) or a
+  DataArray. `scales=` is a number, a `{variable: weight}` mapping, or one of those per
+  target.
+- jablonski wraps this for spectra and time-resolved emission in `jablonski.fits`
+  ([jablonski.md](jablonski.md#fits)).
+
 ## Stochastic simulation (rebop)
 
 Gillespie simulation of reaction networks (`MassAction` and `RateLaw` only) via the
@@ -146,11 +195,25 @@ rsim = RebopSimulator(Model).with_values({Model.A: 100})
 ds = rsim.solve(upto_t=10, n_points=100, rng=1)   # n_points equal intervals → n_points + 1 rows
 ```
 
-- Variables are integer copy numbers, and **values may not carry units** (only `upto_t`
-  can). Models with plain `Equation`s (`x.derive() << ...`) are rejected.
+- Variables are integer copy numbers. In 1.2.0, **variable values may not carry units**
+  (`TypeError`). Rate parameters and `upto_t` may. Models with plain `Equation`s
+  (`x.derive() << ...`) are rejected.
 - Rates may use `+ - * / **`, `real.exp`, `real.sqrt`, `real.hypot`, `real.degrees`,
   `real.radians` and the constants `real.e`, `real.pi`, `real.tau`.
 - Average many runs (`xr.concat([... for seed in range(n)], dim="run").mean("run")`) before
   comparing with the ODE solution.
+- **Newer than 1.2.0:**
+  - `rsim.solve(upto_t=, n_points=100, rng=1, n_runs=50)` returns the average of 50 runs
+    with independent random streams. `n_runs > 1` requires `n_points`.
+  - `RebopSimulator.with_transform(...)` works as on `Simulator` (use `append=True` to
+    keep the copy numbers).
+  - Variable values with units are accepted. Their magnitudes are used as copy numbers
+    (100 mol is 100 molecules), so keep stochastic models unitless anyway.
+  - Constant species (`Parameter` reactants, see
+    [poincare.md](poincare.md#reaction-primitives)) are folded into the reaction rate.
+  - `MassAction` rates that resolve to a number (parameters with units, products of
+    parameters) are passed to rebop as numbers. The poincare changelog reports that in
+    1.2.0 some of these rates could fire without enough reactant molecules. If a 1.2.0 run
+    shows negative counts, this is the cause.
 - For jablonski models with time-dependent excitation, use `jablonski.rebop.rebop_piecewise`
   (see [jablonski.md](jablonski.md#stochastic-runs)).

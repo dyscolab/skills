@@ -10,10 +10,11 @@ import numpy as np
 import pint
 
 from jablonski import Parameter, Simulator, SingletState, SpectroscopicSystem, TripletState, assign, initial
+from jablonski import simulation
 from jablonski.simulation import (
     delta_excitation,
     spectral_steady_state_emission,
-    spectral_time_resolved_emission,
+    time_resolved_emission,
 )
 from jablonski.transitions import (
     Absorption,
@@ -72,12 +73,20 @@ absorbed = ss["absorbed"].pint.dequantify().item()
 np.testing.assert_allclose(ss["fluorescence"].pint.dequantify().item() / absorbed, qy_fluo, rtol=1e-5)
 np.testing.assert_allclose(ss["phosphorescence"].pint.dequantify().item() / absorbed, qy_phos, rtol=1e-5)
 
+# Newer jablonski has a quantum_yield function (emitted / absorbed photons).
+if hasattr(simulation, "quantum_yield"):
+    qy = simulation.quantum_yield(sim, {Dye.absorption: weak_flux}, kind="fluorescence")
+    np.testing.assert_allclose(qy.pint.dequantify().item(), qy_fluo, rtol=1e-5)
+
 # Time-resolved emission after a short pulse. Start events after t = 0:
 # jablonski 0.4.0 applies an event placed exactly at t = 0 one segment late.
+# kind="fluorescence" keeps only the fluorescence lines; the total is "emission".
+# (Per-line names differ between versions: line_<transition> in 0.4.0,
+# emission_<transition> in newer jablonski.)
 pulse = delta_excitation(Dye.absorption, area=1e12 / u.cm**2, start=0.1 * u.ns)
 save_at = np.linspace(0, 20, 401) * u.ns
-tr = spectral_time_resolved_emission(sim, excitation=pulse, save_at=save_at)
-fl = tr["line_fluorescence"].pint.dequantify()
+tr = time_resolved_emission(sim, excitation=pulse, save_at=save_at, kind="fluorescence")
+fl = tr["emission"].pint.dequantify()
 t = fl["time"].values
 late = t > 1e-9  # well after the 50 ps pulse
 slope = np.polyfit(t[late], np.log(fl.values[late]), 1)[0]

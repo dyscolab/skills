@@ -1,7 +1,8 @@
 # poincare 1.2: declaring and simulating ODE systems
 
 poincare is the base library. simbio and jablonski models are poincare `System`s,
-so everything here applies to them too.
+so everything here applies to them too. Notes marked **Newer than 1.2.0** describe poincare
+`main`, which is not on PyPI yet.
 
 ## Contents
 
@@ -39,7 +40,14 @@ class Model(System):
 **Annotate every component** (`x: Variable = ...`). The annotations build the keyword-only
 constructor used for composition and `with_values`. An annotation that doesn't match the
 component type raises `TypeError` when the class is created. Components with no default
-(`assign()`) are required constructor arguments.
+(`assign()`) are required constructor arguments. **Newer than 1.2.0:** `Simulator(Model)`
+also accepts a model with missing values. `solve` then raises
+`TypeError: Missing initial value for k`, unless you supply it with `with_values`.
+
+**Don't subclass a concrete model to extend it.** Compose it as a subsystem instead.
+Subclassing a non-abstract `System` raises `TypeError: cannot subclass ...`. Newer
+poincare applies this to every concrete system, including the jablonski transitions
+(`class MyFluorescence(Fluorescence)` worked in 1.2.0 and fails now).
 
 ## Equations
 
@@ -122,8 +130,9 @@ result = sim.solve(save_at=np.linspace(0, 10, 101))
   (otherwise `DimensionalityError`).
 - `with_transform(mapping_or_list, append=False)` controls the output. **Without
   `append=True`, the output contains only the transform entries**, not the variables.
-- `with_solver(solver)`: **the only way to choose the solver in 1.2.0.** The `solver=`
-  argument of `Simulator(...)` is accepted but ignored.
+- `with_solver(solver)`: **the only way to choose the solver.** In 1.2.0 the `solver=`
+  argument of `Simulator(...)` is accepted but silently ignored. Newer versions remove it
+  (`TypeError: unexpected keyword argument 'solver'`).
   - Solvers: `solvers.LSODA` (default), `RK23`, `RK45`, `DOP853`, `Radau`, `BDF`. All are
     frozen dataclasses with `rtol` (default 1e-3), `atol` (1e-6), `first_step`, `max_step`.
   - The defaults give roughly 1e-3 relative error. **Set tolerances explicitly for
@@ -134,8 +143,8 @@ result = sim.solve(save_at=np.linspace(0, 10, 101))
   default `atol=1e-6`. The run then "succeeds" with nonsense (for example product exceeding
   substrate). Set `atol` a few orders below the smallest base-unit magnitude
   (`atol=1e-27` for ~1e-18 mol). Check conservation to confirm.
-- `LSODA` with `save_at` starting at the start of `t_span`, and no events, uses scipy's
-  `odeint` internally; otherwise it uses `solve_ivp`. If you see `Excess work done`, NaNs
+- `LSODA` with `t_span` starting at 0, a `save_at` and no events uses scipy's `odeint`
+  internally. Otherwise it uses `solve_ivp`. If you see `Excess work done`, NaNs
   or a garbage trajectory, try `solvers.LSODA(..., implementation="LSODA")` (the
   `solve_ivp` path), `solvers.Radau` or `solvers.BDF`.
 - **Debugging:** `prob = sim.create_problem()` exposes `prob.y` and `prob.p` (initial state
@@ -146,7 +155,13 @@ result = sim.solve(save_at=np.linspace(0, 10, 101))
 - `solve(save_at=..., t_span=None, events=(), check_dimensionality=True)`:
   - With units, `save_at` must be a time quantity (`np.linspace(0, 10, 101) * u.s`).
     Without units, it must be a plain array.
-  - `t_span` defaults to `(0, save_at[-1])`.
+  - Without `t_span`, the time span is inferred from `save_at`: integration starts at
+    `save_at[0]`, and the initial values belong to that time. A `save_at` from 1 to 10
+    starts the system at t = 1.
+  - To start at 0 but output only later times, include 0 in `save_at` and drop it
+    afterwards (works in every version). Passing `t_span=(0, t_end)` also works in newer
+    versions. In 1.2.0, the default `LSODA` ignores an explicit `t_span` starting at 0
+    when `save_at` starts later.
   - `events` takes `scipy_events` events (`Event(condition=..., terminal=True)`).
 - `sim.interact(values={Model.k: (0, 10, 0.1)}, save_at=...)` gives ipywidgets sliders in
   Jupyter. In marimo, put a `mo.ui.slider` value into `with_values` instead.
@@ -173,6 +188,18 @@ display, save figures (`plt.savefig(...)`) instead of calling `plt.show()`, or s
 `AbsoluteRateLaw`. simbio re-exports and extends them, and jablonski transitions wrap
 `MassAction`. Usage is documented in [simbio.md](simbio.md#reactions).
 
+**Newer than 1.2.0:** a `Parameter` can be a reactant. It acts as a **constant species**
+(a buffered reservoir or a fixed substrate): it enters the `MassAction` rate law with its
+stoichiometry but gets no equation.
+
+```python
+class Model(System):
+    G: Parameter = assign(default=2)        # constant species
+    x: Variable = initial(default=0)
+    k: Parameter = assign(default=3)
+    make = MassAction(reactants=[2 * G], products=[x], rate=k)   # dx/dt = k·G²
+```
+
 ## Reports and introspection
 
 - `print(Model)` or `Model` in a notebook shows a table of variables, parameters and equations.
@@ -190,11 +217,15 @@ display, save figures (`plt.savefig(...)`) instead of calling `plt.show()`, or s
     `default_notebook_sections | {"Notes": lambda model, latex: "..."}`.
   - simbio's `notebook_report` adds a reactions section and jablonski's
     (`jablonski.plots.notebook_report`) a Jablonski diagram. Use those for their models.
-- **Report bug (1.2.0 and current main):** reports crash with `TypeError: 'NoneType' object cannot be interpreted as an integer`
-  when a variable has no equation but appears in other equations. Typically this is a
-  constant `Volume` in a simbio `Compartment` with amount species. Give it a zero-rate
-  equation through a `Parameter` (`V.derive() << growth_rate`, default `0 * u.pL / u.s`).
-  An inline quantity (`V.derive() << 0 * u.pL / u.s`) breaks the report too.
+- **Report bug (1.2.0, fixed in newer versions):** reports crash with
+  `TypeError: 'NoneType' object cannot be interpreted as an integer` when a variable has
+  no equation but appears in other equations. Typically this is a constant `Volume` in a
+  simbio `Compartment` with amount species. Give it a zero-rate equation through a
+  `Parameter` (`V.derive() << growth_rate`, default `0 * u.pL / u.s`). An inline quantity
+  (`V.derive() << 0 * u.pL / u.s`) breaks the report too.
+- **Newer than 1.2.0:** the Default column of the variable and parameter tables is real
+  LaTeX. Expression defaults are rendered as math, `transform` renames apply inside them,
+  and quantities show their units (`3\ \frac{1}{\mathrm{s}}`).
 - `model_report(Model, path=None, transform={Model.k: "k_1"}, descriptions=None,
   standalone=True, replace_algebraics=False)` returns (or writes to `path`) a LaTeX report
   with equations, a variable table and a parameter table.
