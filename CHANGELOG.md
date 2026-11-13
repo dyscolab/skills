@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Document jablonski's `TripletTripletAnnihilation` (newer than 0.4.0): T + T → S + S
+  between four possibly different levels, and the 0.4.0 workaround with a custom
+  `MassAction`.
 - After declaring a model, show a model report as proof that it works. In notebooks use
   `poincare.printing.notebook_report` (needs poincare newer than 1.2.0); in scripts use
   `model_report`.

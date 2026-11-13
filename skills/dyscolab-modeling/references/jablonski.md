@@ -88,6 +88,7 @@ quantities.
 | `ReverseIntersystemCrossing` | `source` (triplet), `target` (singlet) | 1/s | `non_radiative_transition` | E(source) ≥ E(target) |
 | `EnergyTransferUpconversion` (0.4.0) | `sensitizer`, `activator`, `relaxator` | 1/s | `upconversion` | 2·E(sens) ≥ E(act) + E(relax); reaction 2·sens → act + relax |
 | `EnergyTransferUpconversion4` (0.4.0) | `sensitizer_high`, `sensitizer_low`, `activator_low`, `activator_high` | 1/s | `upconversion` | E(sh) + E(al) ≥ E(sl) + E(ah) |
+| `TripletTripletAnnihilation` (newer than 0.4.0) | `triplet_1`, `triplet_2` (triplets), `singlet_1`, `singlet_2` (singlets) | 1/s | `annihilation` | E(t1) + E(t2) ≥ E(s1) + E(s2); reaction t1 + t2 → s1 + s2 |
 
 - **Newer than 0.4.0, ETU renamed (breaking):** the four-state transition is called
   `EnergyTransferUpconversion` (same keywords as `EnergyTransferUpconversion4`), and
@@ -102,6 +103,21 @@ quantities.
       from jablonski.transitions import EnergyTransferUpconversion
   ```
 
+- **Newer than 0.4.0, triplet-triplet annihilation:** `TripletTripletAnnihilation` is the
+  mass-action reaction T + T → S + S with rate `rate * triplet_1 * triplet_2`. The four
+  states may be different levels. Pass the same state twice for a homo-annihilation: the
+  reaction then has stoichiometry 2 and the rate goes as T². For TTA upconversion
+  (T₁ + T₁ → S₁ + S₀) the singlet S₁ may lie above T₁, as long as the totals satisfy
+  2·E(T₁) ≥ E(S₁) + E(S₀):
+
+  ```python
+  tta = TripletTripletAnnihilation(
+      triplet_1=T1, triplet_2=T1, singlet_1=S1, singlet_2=S0, rate=1e-3 / u.s
+  )
+  ```
+
+  With populations as numbers of molecules, `rate` is in 1/s per molecule. In 0.4.0,
+  write it as a custom transition wrapping `MassAction(reactants=[T1, T1], products=[S1, S0], rate=k)`.
 - **Non-radiative triplet → singlet decay (T₁ → S₀)** uses `ReverseIntersystemCrossing`
   (triplet `source` → any lower singlet `target`). `InternalConversion` requires equal
   multiplicities.
