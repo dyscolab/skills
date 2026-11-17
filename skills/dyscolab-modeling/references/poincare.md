@@ -145,8 +145,11 @@ result = sim.solve()
   substrate). Set `atol` a few orders below the smallest base-unit magnitude
   (`atol=1e-27` for ~1e-18 mol). Check conservation to confirm.
 - `LSODA` with `t_span` starting at 0, a `save_at` and no events uses scipy's `odeint`
-  internally. Otherwise it uses `solve_ivp`. If you see `Excess work done`, NaNs
-  or a garbage trajectory, try `solvers.LSODA(..., implementation="LSODA")` (the
+  internally. Otherwise it uses `solve_ivp`. **`odeint` can fail silently:** with few,
+  widely spaced `save_at` points it hits its 500-step limit per output interval, warns
+  `Excess work done` and returns wrong values without raising. Never hide warnings
+  (`-W ignore`, `warnings.filterwarnings`) while checking results. If you see that
+  warning, NaNs or a garbage trajectory, try `solvers.LSODA(..., implementation="LSODA")` (the
   `solve_ivp` path), `solvers.Radau` or `solvers.BDF`.
 - `with_times(t_span=None, save_at=None)`: **the recommended way to set the simulation
   times.** It stores them on the simulator, so they carry through the other `with_*` calls

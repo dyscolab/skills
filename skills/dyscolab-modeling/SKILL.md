@@ -85,6 +85,10 @@ same arguments to `solve` (`sim.solve(save_at=...)`), which newer versions still
   states inherit them. Use `solvers.LSODA(rtol=1e-8, atol=...)` with `atol` far below the
   smallest value you care about, **measured in SI base units** (1 pL = 1e-15 m³ and
   1e-18 mol are tiny numbers). Check a conserved total to catch a bad tolerance.
+- **`LSODA` can fail silently.** From t = 0 with `save_at` and no events it uses scipy's
+  `odeint`. With few, widely spaced `save_at` points that hits a step limit, warns
+  `Excess work done` and returns wrong values. Use `solvers.LSODA(..., implementation="LSODA")`
+  for long runs, and never hide warnings (`-W ignore`) while checking results.
 - **Units are all or nothing.** With units, `save_at`, event times and `upto_t` are time
   quantities, and `with_values` must use compatible units. Without units, use plain
   numbers. Put physical constants in a `Parameter`, because inline pint constants in rate
@@ -114,8 +118,10 @@ same arguments to `solve` (`sim.solve(save_at=...)`), which newer versions still
     `emission_<transition>`, and `EnergyTransferUpconversion4` became
     `EnergyTransferUpconversion`. See [references/jablonski.md](references/jablonski.md)
     for code that runs on both.
-- **Sweeps:** use the loop `xr.concat([SteadyState().solve(sim.with_values({M.p: v})).isel(time=-1) for v in vals], dim="p")`.
+- **Sweeps:** for any parameter, use the loop `xr.concat([SteadyState().solve(sim.with_values({M.p: v})).isel(time=-1) for v in vals], dim="p")`.
   The built-in `SteadyState.sweep` fails with units on variables or with transforms.
+  For jablonski spectra over a list of pumper excitations, use the `jablonski.sweeps`
+  helpers.
 
 ## Workflow suggestions
 
@@ -129,6 +135,19 @@ needs. Some patterns that work well with poincare and its downstream libraries:
      `simbio.notebook_report` (adds the reactions), for jablonski models
      `jablonski.plots.notebook_report` (adds the Jablonski diagram).
   2. One cell with a short example simulation and a plot.
+
+  Run the notebook before handing it over (`jupyter nbconvert --execute --inplace` or
+  `nbclient`). If you can't, say so and give a script you have run.
+- **Implementing a model from a paper** → stay close to the source: its units (a level
+  given in nm is `initial(545 * u.nm)`), its symbols and its relations. Cite it, and
+  give each value a comment with its table or equation. Details:
+  [workflows.md](references/workflows.md#implementing-a-model-from-a-publication).
+- **Writing any model** → declare states, parameters and transitions directly with
+  `initial`, `assign` and the library's classes, without aliases or wrapper helpers. Make
+  a subsystem when it is used several times or is a physical unit (an ion, a molecule).
+  Details: [workflows.md](references/workflows.md#model-conventions).
+- **Time-resolved runs** last until the slowest process is over (about 5× the longest
+  lifetime).
 - **Simulating a scenario** → the simulation plus one plot or summary of the quantity of
   interest.
 - **Steady states, sweeps, oscillations, fits** → build them on top of a declared and

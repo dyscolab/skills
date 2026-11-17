@@ -36,6 +36,10 @@ result = sim.with_times(save_at=...).solve()
 result.pint.dequantify().to_dataframe().plot()
 ```
 
+- **Run the notebook before handing it over**, so the user gets it with its outputs:
+  `jupyter nbconvert --to notebook --execute --inplace analysis.ipynb`, or `nbclient`
+  from Python. If the environment has no notebook runner and you can't add one, say so
+  and deliver the code as a script that you have run.
 - `notebook_report(Model, show=False)` returns the Markdown string instead of displaying
   it, for example to save it to a `.md` file.
 - simbio's `notebook_report` starts with a reactions section, and jablonski's
@@ -81,8 +85,30 @@ user asks for them or they already exist.
 modules and custom transitions or reactions, notebooks per analysis or figure that import it,
 and a folder for the *user's* data files.
 
-## Model conventions for larger models
+## Implementing a model from a publication
 
+- **Stay close to the source.** Enter every value in the units and form the source uses
+  and let pint convert it: a level given as 545 nm is `initial(545 * u.nm)`, a rate in
+  cm³/s stays in cm³/s. Keep relations as the source writes them (a ratio stays
+  `5.9 * k_ET31`, a branching ratio stays `0.70 * k_R6`). Don't replace values the
+  source gives with your own estimates.
+- **Use the source's symbols** for states, parameters and transitions (`n6`, `k_ET13`,
+  `k_NR4`), so each line can be checked against the paper. Put the physical name in a
+  comment (`n6  # 2H11/2, 4S3/2`).
+- **Reference the source.** Cite it in full (authors, title, journal, year, DOI) in the
+  module docstring or the first notebook cell. Give each parameter, state and transition
+  a comment with where it comes from: `# Table 1`, `# Eq. 3`, `# Fig. 1`, `# p. 39`.
+  Values that are not in the source are placeholders and say so (`# PLACEHOLDER, not in
+  the paper`).
+
+## Model conventions
+
+- **Write the model directly with the library.** Declare states, parameters and
+  transitions with `initial`, `assign` and the library's classes in the class body. Don't
+  add aliases for library classes, helper functions that wrap `initial` or `assign`,
+  dictionaries of values looked up in the class body, or module-level constants that
+  only feed one default. The class should read like a list of the model's parameters and
+  its equations (poincare), reactions (simbio) or transitions (jablonski).
 - **One place for parameters.** Declare every rate and physical constant as a named
   `Parameter` with units and a short comment giving its meaning and source:
   `k_r6: Parameter = assign(default=1510 / u.s)  # 4S3/2 radiative, Anderson 2013 Table 2`.
@@ -92,11 +118,18 @@ and a folder for the *user's* data files.
   Changing the base parameter with `with_values` updates everything that depends on it.
 - **Control parameters** (power, temperature, wavelength) are `Parameter`s with defaults,
   so experiments only call `with_values` or set `piecewise` events.
-- **Reusable mechanisms become small `System` classes** (custom transitions, reaction
-  motifs, coupling terms) that are instantiated with keyword links. Avoid copy-pasting
-  equations.
-- **Name states and transitions physically** (`Er_4S3_2`, `etu_13`, `green_decay`). The
-  names become the output columns and the per-line keys (`line_<name>` in jablonski 0.4.0,
+- **Build a subsystem (a small `System` class) when it is used several times or stands
+  for a physical or conceptual unit**, and instantiate it with keyword links. For
+  example:
+  - an `YbIon` class (two levels, absorption, decay) instantiated twice, once for the
+    ions that take part in energy transfer and once for isolated ions;
+  - an `ErIon` class holding one ion's levels and its internal relaxation and emission,
+    with the Yb–Er transfers declared in the model that combines the two ions;
+  - a custom transition or reaction motif that appears in many places.
+- **Name states and transitions physically** when there is no source notation to follow
+  (`Er_4S3_2`, `etu_13`, `green_decay`). When there is one, use it (see
+  [Implementing a model from a publication](#implementing-a-model-from-a-publication)).
+  The names become the output columns and the per-line keys (`line_<name>` in jablonski 0.4.0,
   `emission_<name>` / `absorption_<name>` in newer versions).
 
 ## Running experiments
@@ -108,8 +141,13 @@ and a folder for the *user's* data files.
   for photophysics. For plain poincare/simbio models, run consecutive `solve` calls,
   passing the final state on with `with_values`, or use a time-dependent `Parameter`
   expression.
+- **Simulate long enough for the slowest process.** A time-resolved run should last until
+  the slowest decay is over, about 5× the longest lifetime (1/Σk of the slowest state),
+  not only until the fastest signals peak.
 - Scans: use the loop + `xr.concat` pattern ([analysis.md](analysis.md#parameter-sweeps)),
-  and nest it or concat on a second dimension for 2D scans.
+  and nest it or concat on a second dimension for 2D scans. For jablonski spectra over a
+  list of excitations given as pumper fluxes, use the `jablonski.sweeps` helpers instead
+  ([jablonski.md](jablonski.md#sweeps)).
 - Plot with `result.pint.dequantify().to_dataframe().plot()` or xarray's `.plot()`. Label
   axes with units.
 

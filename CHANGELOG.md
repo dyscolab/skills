@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- New guidance for implementing a model from a publication: keep the source's units,
+  symbols and relations, and cite the source for every value.
+- Model conventions (now for all models, not only larger ones): write the model directly
+  with `initial`, `assign` and library classes (no aliases or wrapper helpers), and make
+  subsystems when they are reused or are a physical unit, with examples.
+- Run notebooks before handing them over, or say so and deliver a run script.
+- Promote the silent `odeint` failure of `LSODA` (from t = 0 without events) to the main
+  rules, with the `implementation="LSODA"` workaround, and warn against hiding warnings.
+- Time-resolved runs last until the slowest process is over (about 5× the longest
+  lifetime).
+- Say when to use the `jablonski.sweeps` helpers (pumper excitations) and when the loop
+  pattern (model parameters such as `power_density`).
 - jablonski (newer than 0.4.0): recommend setting the times with `with_times` and calling
   `piecewise`, `time_resolved`, `spectral_time_resolved` and the rebop functions without
   `save_at`/`upto_t`/`n_points`. The jablonski examples use it and are skipped on

@@ -359,6 +359,11 @@ Check it against `k_r / Σk` for the emitting state.
   more than one pumper). **Newer than 0.4.0:** they are also available as `sweep_spectra`
   and `sweep_spectral_steady_state` (with the absorption `kind`s), plus
   `sweep_quantum_yield` ([Quantum yields](#quantum-yields)).
+- Which one to use:
+  - The excitation goes through pumpers (`pump_from_laser`, `{Model.absorption: flux}`):
+    use the sweep helpers above.
+  - The excitation is a model `Parameter` (`power_density`, `wavelength`), or you sweep
+    temperature, a rate or any other parameter: use the loop below.
 - For power, temperature or rate sweeps of any output, use the loop pattern from
   [analysis.md](analysis.md#parameter-sweeps):
   `xr.concat([SteadyState().solve(sim.with_values({M.T: T})).isel(time=-1) for T in Ts], dim="T")`.
