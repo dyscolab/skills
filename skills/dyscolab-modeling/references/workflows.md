@@ -1,23 +1,25 @@
-# Workflows: scope, file layout and model conventions
+# Workflows: suggestions, file layout and model conventions
 
-## Do the requested stage, not the whole pipeline
+## Workflow suggestions
 
-| Request | Deliver | Don't add |
-| --- | --- | --- |
-| "Declare / write / implement a model of X" | The model, plus proof that it works: a model report (`notebook_report` in a notebook) and one short example simulation with a plot | Sweeps, fits, steady-state scans, comparisons with literature |
-| "Simulate X" (under conditions Y) | Model (if missing), that simulation, one plot or summary | Extra scenarios nobody asked for |
-| "Find the steady state / sweep / bifurcation / period" | That analysis on the existing model | Fits, reports |
-| "Fit to this data" | Fit using the data the user supplied | Data the user did not supply |
-| "Report / write up the model" | `model_report` LaTeX, or a short description | New simulations |
+The stages (declare, check, simulate, analyse, compare, report) combine freely. Common
+tasks and what usually makes a good result:
 
-- **Compare with data only when the user provides it** (a file, an array, or numbers in the
-  message). Never search the literature, invent "typical experimental" curves, or digitize
-  published figures unprompted. If parameter values are missing, use clearly labelled
-  placeholders and say so. Don't stop to research them.
-- **Sanity checks are part of a correct model, not extra analysis.** Keep them
-  cheap: check that units are consistent, that conserved totals stay constant, and run one
-  limiting case with a known answer. Report the outcome in one line.
-- When the user later asks for more, build on the existing files rather than starting over.
+| Task | A good result |
+| --- | --- |
+| Declare / write / implement a model of X | The model, a model report (`notebook_report` in a notebook) and one short example simulation with a plot |
+| Simulate X (under conditions Y) | The model (if missing), that simulation, one plot or summary |
+| Find the steady state / sweep / bifurcation / period | That analysis on a declared, checked model |
+| Fit to data | A fit to the data the user supplied, with the fitted values and a plot against the data |
+| Report / write up the model | `model_report` LaTeX, or a short description |
+
+- **Compare with the user's data** (a file, an array, or numbers in the message). Don't
+  invent "typical experimental" curves. If parameter values are missing, use clearly
+  labelled placeholders and say so.
+- **Sanity checks are part of a correct model.** Keep them cheap: check that units are
+  consistent, that conserved totals stay constant, and run one limiting case with a known
+  answer. Report the outcome in one line.
+- When the work grows, build on the existing files rather than starting over.
 
 ## Showing that a declared model works
 

@@ -117,34 +117,33 @@ same arguments to `solve` (`sim.solve(save_at=...)`), which newer versions still
 - **Sweeps:** use the loop `xr.concat([SteadyState().solve(sim.with_values({M.p: v})).isel(time=-1) for v in vals], dim="p")`.
   The built-in `SteadyState.sweep` fails with units on variables or with transforms.
 
-## Scope: do what was asked
+## Workflow suggestions
 
-The stages form a menu, not a pipeline. Do only the requested stage, plus the minimum proof
-that it works:
+The stages below are building blocks, not a fixed pipeline: combine the ones the task
+needs. Some patterns that work well with poincare and its downstream libraries:
 
-- **"Declare / write a model"** → the model plus proof that it works. Prefer a notebook:
+- **Declaring a model** → show that the code matches the intended equations. A notebook
+  works well:
   1. One cell with a **model report**: `notebook_report(Model)` from `poincare.printing`
      renders the equations, variables and parameters. For simbio models use
      `simbio.notebook_report` (adds the reactions), for jablonski models
      `jablonski.plots.notebook_report` (adds the Jablonski diagram).
   2. One cell with a short example simulation and a plot.
-
-  In a plain script, `print(model_report(Model))` instead. No sweeps, fits,
-  steady-state scans or literature comparison.
-- **"Simulate X"** → that simulation and one plot or summary.
-- **Steady state / sweep / oscillation / fit / report** → only when asked
-  ([analysis.md](references/analysis.md)).
-- **Compare with data only when the user provides data.** Never search the literature or
-  digitize published figures unprompted. Label missing parameter values as placeholders
-  instead of researching them.
+- **Simulating a scenario** → the simulation plus one plot or summary of the quantity of
+  interest.
+- **Steady states, sweeps, oscillations, fits** → build them on top of a declared and
+  checked model ([analysis.md](references/analysis.md)).
+- **Comparing with data** → use data the user provides. Don't invent "typical"
+  experimental curves. When parameter values are missing, use clearly labelled
+  placeholders and say so.
 - In poincare 1.2.0, reports of a `Compartment` with a constant `Volume` crash
   (`model_report`; fixed in newer versions). Give the volume a zero-rate equation:
   `growth_rate: Parameter = assign(default=0 * u.pL / u.s)` and
   `growth = V.derive() << growth_rate`.
-- Cheap sanity checks belong to every model: consistent units, conserved totals, one
-  limiting case. Report them in a line, not a separate analysis.
+- Cheap sanity checks fit every model: consistent units, conserved totals, one
+  limiting case. Report them in a line.
 
-Stages, when they are requested:
+Typical stages:
 
 1. Declare.
 2. Sanity-check.
@@ -178,7 +177,7 @@ reusable subsystems): [references/workflows.md](references/workflows.md).
   BioModels, graphs.
 - [references/jablonski.md](references/jablonski.md): states, transitions, custom
   transitions, excitation, spectra, quantum yields, fits.
-- [references/workflows.md](references/workflows.md): scope, file layout, conventions,
+- [references/workflows.md](references/workflows.md): workflow suggestions, file layout, conventions,
   validation.
 - [references/api-inventory.md](references/api-inventory.md): every public name in these
   versions, internal helpers, and what does *not* exist yet.
