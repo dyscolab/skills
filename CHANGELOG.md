@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- jablonski (newer than 0.4.0): recommend setting the times with `with_times` and calling
+  `piecewise`, `time_resolved`, `spectral_time_resolved` and the rebop functions without
+  `save_at`/`upto_t`/`n_points`. The jablonski examples use it and are skipped on
+  jablonski 0.4.0.
 - Recommend `with_times` (poincare newer than 1.2.0) to set the simulation times:
   `Simulator.with_times(t_span=, save_at=)` and `RebopSimulator.with_times(upto_t=,
   n_points=)`, with `solve()` called without times. Times passed to `solve` still work and

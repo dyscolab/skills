@@ -222,8 +222,19 @@ from jablonski.simulation import step_excitation, pulse_excitation, delta_excita
 step = step_excitation({Dye.absorption: flux}, start=1 * u.ns)
 pulse = pulse_excitation({Dye.absorption: flux}, width=5 * u.ns, start=1 * u.ns)
 delta = delta_excitation(Dye.absorption, area=1e14 / u.cm**2, start=1 * u.ns)  # 50 ps pulse
-result = piecewise(sim, events=pulse | delta, save_at=np.linspace(0, 50, 501) * u.ns)
+timed = sim.with_times(save_at=np.linspace(0, 50, 501) * u.ns)   # newer than 0.4.0
+result = piecewise(timed, events=pulse | delta)
+# jablonski 0.4.0: piecewise(sim, events=pulse | delta, save_at=np.linspace(0, 50, 501) * u.ns)
 ```
+
+- **Set the times on the simulator with `with_times(save_at=...)`** (newer than poincare
+  1.2.0 / jablonski 0.4.0). Every time-resolved function then takes them from there, and
+  `save_at=` passed to the function still wins. To start before the first output point
+  (pulse at 0, output from 10 ns), also set `t_span` on the simulator:
+  `sim.with_times(t_span=(0, 50) * u.ns, save_at=np.linspace(10, 50, 41) * u.ns)`. The
+  initial values belong to `t_span[0]`. `save_at` points and events must lie inside
+  `t_span` (`ValueError`). `t_span` comes only from the simulator; the functions have no
+  `t_span` argument.
 
 - `delta_excitation` is a fixed 50 ps square pulse. For a shorter (or longer) pulse, use
   `pulse_excitation({pumper: area / width}, width=width, start=...)`. Keep the width short
@@ -250,7 +261,8 @@ result = piecewise(sim, events=pulse | delta, save_at=np.linspace(0, 50, 501) * 
 ## Simulation workflows
 
 All of these take a `Simulator` (not a model class) and return xarray objects with pint
-units. In 0.4.0 they are named `*_emission`.
+units. In 0.4.0 they are named `*_emission`. `save_at=None` (newer than 0.4.0) means the
+`save_at` set with `sim.with_times`. In 0.4.0, `save_at` is required.
 
 **Newer than 0.4.0:** the functions have generic names, because they also handle
 absorption: `spectral_time_resolved`, `time_resolved`, `spectral_steady_state`,
@@ -259,9 +271,9 @@ as wrappers with the same arguments, so they work in both versions.
 
 | Function | Returns |
 | --- | --- |
-| `piecewise(sim, events=, save_at=)` | populations (and transforms) over time |
-| `spectral_time_resolved_emission(sim, excitation=events, save_at=, kind="emission", join_by_energy=False)` | one photon rate per emission line over time (`line_<transition>`; newer: `emission_<transition>`); `attrs` maps line → energy |
-| `time_resolved_emission(sim, excitation=events, save_at=, kind=)` | total `emission` over time |
+| `piecewise(sim, events=, save_at=None)` | populations (and transforms) over time |
+| `spectral_time_resolved_emission(sim, excitation=events, save_at=None, kind="emission", join_by_energy=False)` | one photon rate per emission line over time (`line_<transition>`; newer: `emission_<transition>`); `attrs` maps line → energy |
+| `time_resolved_emission(sim, excitation=events, save_at=None, kind=)` | total `emission` over time |
 | `spectral_steady_state_emission(sim, excitation, kind=, join_by_energy=False)` | steady-state rate per line |
 | `steady_state_emission(sim, excitation, kind=)` | total steady-state `emission` |
 | `emission_spectra(sim, excitation, unit=u.nm, kind=)` | line intensities indexed by `wavelenght` (sic) |
@@ -414,8 +426,10 @@ fit = fits.fit_spectra(sim, spec, excitation={Dye.absorption: flux}, p0={...})
 ```python
 from jablonski.rebop import RebopSimulator, rebop_piecewise
 
-rsim = RebopSimulator(Model)   # populations become integer molecule counts
-ds = rebop_piecewise(rsim, events=pulse, upto_t=100 * u.ns, n_points=1000, rng=1)
+# populations become integer molecule counts
+rsim = RebopSimulator(Model).with_times(upto_t=100 * u.ns, n_points=1000)   # newer than 0.4.0
+ds = rebop_piecewise(rsim, events=pulse, rng=1)
+# jablonski 0.4.0: rebop_piecewise(RebopSimulator(Model), events=pulse, upto_t=100 * u.ns, n_points=1000, rng=1)
 ```
 
 Average many seeds before comparing with `piecewise`. Population defaults are truncated to
@@ -427,6 +441,9 @@ integers (molecule counts), so use counts such as 100, not fractions.
   integer `rng` seed now feeds one generator shared by every segment and run. In 0.4.0 each
   segment reused the same seed, so average over seeds yourself.
 - The output `time` is in the unit of `upto_t`.
-- Stochastic photon counts: `rebop_spectral_time_resolved(rsim, excitation=events, upto_t=, n_points=, kind=, join_by_energy=, rng=, n_runs=)`
+- `upto_t` and `n_points` default to the ones set with `rsim.with_times(upto_t=,
+  n_points=)` (recommended), each independently. Arguments passed to the function win.
+  `n_points` is required by `rebop_piecewise`, here or on the simulator.
+- Stochastic photon counts: `rebop_spectral_time_resolved(rsim, excitation=events, upto_t=None, n_points=None, kind=, join_by_energy=, rng=, n_runs=)`
   and `rebop_time_resolved(...)` mirror the deterministic functions. The `*_emission` names
   are wrappers.

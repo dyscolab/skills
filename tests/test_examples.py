@@ -1,3 +1,4 @@
+import inspect
 import sys
 from pathlib import Path
 from runpy import run_path
@@ -22,6 +23,15 @@ needs_with_times = {
     "simbio_stochastic.py",
 }
 
+# save_at=None in jablonski's simulation functions is newer than jablonski 0.4.0.
+needs_jablonski_times = {"jablonski_quantum_yield.py", "jablonski_upconversion.py"}
+
+
+def _jablonski_takes_times_from_simulator() -> bool:
+    from jablonski.simulation import piecewise
+
+    return inspect.signature(piecewise).parameters["save_at"].default is None
+
 
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.parametrize("example", examples, ids=[p.stem for p in examples])
@@ -30,4 +40,6 @@ def test_example(example: Path):
         pytest.skip("simbio 1.2.0 SBML import requires Python >= 3.14")
     if example.name in needs_with_times and not hasattr(Simulator, "with_times"):
         pytest.skip("with_times requires poincare newer than 1.2.0")
+    if example.name in needs_jablonski_times and not _jablonski_takes_times_from_simulator():
+        pytest.skip("times from with_times require jablonski newer than 0.4.0")
     run_path(str(example), run_name="test")

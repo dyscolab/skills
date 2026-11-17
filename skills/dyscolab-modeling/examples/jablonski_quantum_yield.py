@@ -84,8 +84,8 @@ if hasattr(simulation, "quantum_yield"):
 # (Per-line names differ between versions: line_<transition> in 0.4.0,
 # emission_<transition> in newer jablonski.)
 pulse = delta_excitation(Dye.absorption, area=1e12 / u.cm**2, start=0.1 * u.ns)
-save_at = np.linspace(0, 20, 401) * u.ns
-tr = time_resolved_emission(sim, excitation=pulse, save_at=save_at, kind="fluorescence")
+timed = sim.with_times(save_at=np.linspace(0, 20, 401) * u.ns)
+tr = time_resolved_emission(timed, excitation=pulse, kind="fluorescence")
 fl = tr["emission"].pint.dequantify()
 t = fl["time"].values
 late = t > 1e-9  # well after the 50 ps pulse

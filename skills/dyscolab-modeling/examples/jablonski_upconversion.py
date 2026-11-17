@@ -91,7 +91,8 @@ events = {
     0.1 * u.ms: {YbEr.power_density: 100 * u.W / u.cm**2},
     1.1 * u.ms: {YbEr.power_density: None},
 }
-pulse = piecewise(cw, events=events, save_at=np.linspace(0, 5, 501) * u.ms).pint.dequantify()
+timed = cw.with_times(save_at=np.linspace(0, 5, 501) * u.ms)
+pulse = piecewise(timed, events=events).pint.dequantify()
 np.testing.assert_allclose(pulse["Yb1"] + pulse["Yb2"], 0.18, rtol=1e-8)
 np.testing.assert_allclose(pulse["Er1"] + pulse["Er3"] + pulse["Er6"] + pulse["Er7"], 0.02, rtol=1e-8)
 assert pulse["green"].idxmax().item() > 1.1e-3  # ETU: green keeps rising after the pulse ends
