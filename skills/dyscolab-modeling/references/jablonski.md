@@ -276,7 +276,7 @@ as wrappers with the same arguments, so they work in both versions.
 | `time_resolved_emission(sim, excitation=events, save_at=None, kind=)` | total `emission` over time |
 | `spectral_steady_state_emission(sim, excitation, kind=, join_by_energy=False)` | steady-state rate per line |
 | `steady_state_emission(sim, excitation, kind=)` | total steady-state `emission` |
-| `emission_spectra(sim, excitation, unit=u.nm, kind=)` | line intensities indexed by `wavelenght` (sic) |
+| `emission_spectra(sim, excitation, unit=u.nm, kind=)` | line intensities indexed by `wavelenght` (0.4.0) or `wavelength` (newer) |
 | `widened_emission_spectra(sim, excitation, unit=, kind=, samples=np.linspace(380, 700, 1000), width=5)` | Gaussian-broadened spectrum |
 | `excitation_emission_matrix(sim, height, unit=)` | emission spectrum for each pumper at flux `height` |
 | `excitation_spectra(sim, emission, height, unit=)` | intensity at one emission wavelength per pumper |
@@ -296,14 +296,20 @@ as wrappers with the same arguments, so they work in both versions.
 - Signals are photon **rates** (`rate_law` of each radiative transition, per unit
   population), not normalised intensities.
 - The steady-state results include an `event` column (0 means converged).
-- The spectra coordinate is spelled `wavelenght`, in every version.
+- The spectra coordinate is spelled `wavelenght` in 0.4.0 and `wavelength` in newer
+  versions. For code that runs on both, take it from the result:
+  `dim = spectrum.dims[0]`, then `spectrum.sel({dim: 600}, method="nearest")`.
+- In 0.4.0 each line keeps the time unit of its transition's rate (for example 1/ns for a
+  fluorescence and 1/µs for a phosphorescence), and totals and spectra take the unit of
+  the first line. Convert with `.pint.to("1/s")` before plotting or comparing. Newer
+  versions return every line, total and spectrum in 1/s.
 - 0.4.0 quirks, fixed in newer versions:
   - The spectra functions (`emission_spectra`, `excitation_emission_matrix`,
     `excitation_spectra`, `sweep_emission_spectra`) label the *intensities* with the
     wavelength unit (for example nm). Treat the values as photons/s and dequantify.
     Newer versions give them photon-rate units (1/s).
   - `excitation_spectra(sim, emission=...)` needs a wavelength that exactly equals one of
-    the matrix's `wavelenght` coordinate values (take it from
+    the matrix's wavelength coordinate values (take it from
     `excitation_emission_matrix(...)`). Newer versions pick the nearest wavelength.
 - For stiff photophysics, set `sim = Simulator(Model).with_solver(solvers.LSODA(rtol=1e-8, atol=...))`
   with `atol` well below the smallest population of interest.
@@ -319,7 +325,7 @@ from jablonski.sweeps import sweep_quantum_yield
 excitation = {Dye.absorption: 1e18 / (u.cm**2 * u.s)}
 qy = quantum_yield(sim, excitation, kind="fluorescence").pint.dequantify().item()  # emitted / absorbed
 fluxes = np.array([1e18, 1e19]) / (u.cm**2 * u.s)
-per_line = spectral_quantum_yield(sim, excitation, unit=u.nm)      # indexed by `wavelenght`
+per_line = spectral_quantum_yield(sim, excitation, unit=u.nm)      # indexed by `wavelength`
 vs_flux = sweep_quantum_yield(sim, [{Dye.absorption: f} for f in fluxes])  # `excitation` dim
 ```
 

@@ -212,8 +212,10 @@ ds = rsim.solve(rng=1)   # n_points equal intervals → n_points + 1 rows
     independently.
   - `RebopSimulator.with_transform(...)` works as on `Simulator` (use `append=True` to
     keep the copy numbers).
-  - Variable values with units are accepted. Their magnitudes are used as copy numbers
-    (100 mol is 100 molecules), so keep stochastic models unitless anyway.
+  - Variable values may use dimensionless units such as `u.count` (`20 * u.count` is 20
+    copies). Amounts of substance (`u.molecule`, `u.mol`) raise `DimensionalityError`.
+    Releases up to 1.2.0 accepted them silently but converted them to moles, so
+    `1000 * u.molecule` became 0 copies. Keep stochastic models unitless or use `u.count`.
   - Constant species (`Parameter` reactants, see
     [poincare.md](poincare.md#reaction-primitives)) are folded into the reaction rate.
   - `MassAction` rates that resolve to a number (parameters with units, products of
