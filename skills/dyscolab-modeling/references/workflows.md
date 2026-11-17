@@ -30,7 +30,7 @@ from poincare.printing import notebook_report  # simbio: from simbio import note
 notebook_report(MyModel)                       # jablonski: from jablonski.plots import notebook_report
 
 # cell 2: one example simulation
-result = sim.solve(save_at=...)
+result = sim.with_times(save_at=...).solve()
 result.pint.dequantify().to_dataframe().plot()
 ```
 

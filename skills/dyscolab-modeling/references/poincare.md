@@ -118,9 +118,10 @@ sim = (
     Simulator(Model)                    # compiles once; accepts a class or an instance
     .with_solver(solvers.LSODA(rtol=1e-8, atol=1e-10))
     .with_values({Model.k: 3, Model.x: 2})
+    .with_times(save_at=np.linspace(0, 10, 101))
     .with_transform({"E": 0.5 * Model.v**2 + 0.5 * Model.x**2}, append=True)
 )
-result = sim.solve(save_at=np.linspace(0, 10, 101))
+result = sim.solve()
 ```
 
 - **Immutable builder.** Every `with_*` returns a new simulator that shares the compiled
@@ -147,12 +148,19 @@ result = sim.solve(save_at=np.linspace(0, 10, 101))
   internally. Otherwise it uses `solve_ivp`. If you see `Excess work done`, NaNs
   or a garbage trajectory, try `solvers.LSODA(..., implementation="LSODA")` (the
   `solve_ivp` path), `solvers.Radau` or `solvers.BDF`.
+- `with_times(t_span=None, save_at=None)`: **the recommended way to set the simulation
+  times.** It stores them on the simulator, so they carry through the other `with_*` calls
+  and `solve()` needs no arguments. `solve(t_span=..., save_at=...)` still works, and each
+  argument not passed to `solve` falls back to its stored value independently.
+  `sim.with_times(save_at=t).solve()` equals `sim.solve(save_at=t)`. **Not in 1.2.0:**
+  there, pass the times to `solve`.
 - **Debugging:** `prob = sim.create_problem()` exposes `prob.y` and `prob.p` (initial state
   and parameters in base units, ordered like `sim.compiled.variables` / `.parameters`)
   and `prob.rhs(t, y, p, dy)`, so you can evaluate the right-hand side by hand.
 - `Simulator(Model, backend="numpy" | "numba" | "jax")`. numpy is the default. numba and
   jax must be installed separately (jax is not available on Windows).
-- `solve(save_at=..., t_span=None, events=(), check_dimensionality=True)`:
+- `solve(t_span=None, save_at=None, events=(), check_dimensionality=True)` (times default to
+  those set with `with_times`). The rules below hold wherever the times are given:
   - With units, `save_at` must be a time quantity (`np.linspace(0, 10, 101) * u.s`).
     Without units, it must be a plain array.
   - Without `t_span`, the time span is inferred from `save_at`: integration starts at
@@ -163,7 +171,8 @@ result = sim.solve(save_at=np.linspace(0, 10, 101))
     versions. In 1.2.0, the default `LSODA` ignores an explicit `t_span` starting at 0
     when `save_at` starts later.
   - `events` takes `scipy_events` events (`Event(condition=..., terminal=True)`).
-- `sim.interact(values={Model.k: (0, 10, 0.1)}, save_at=...)` gives ipywidgets sliders in
+- `sim.interact(values={Model.k: (0, 10, 0.1)}, save_at=...)` (newer versions also take the
+  times from `with_times`) gives ipywidgets sliders in
   Jupyter. In marimo, put a `mo.ui.slider` value into `with_values` instead.
 
 ## Results

@@ -58,7 +58,7 @@ sweep = xr.concat(
 
 `isel(time=-1)` matters: without it, the runs (which stop at different times) are aligned
 on `time` and padded with NaN. The same loop works for time courses
-(`sim.with_values({...}).solve(save_at=...)`, concatenated on a new dimension) and for
+(`sim.with_values({...}).with_times(save_at=...).solve()`, concatenated on a new dimension) and for
 2D sweeps (nest two loops, or concat a list of 1D sweeps).
 
 Built-in helpers, which work only in simple cases in 1.2.0:
@@ -168,8 +168,8 @@ fit[Model.k]
 
   fitter = Fitter(
       sim,
-      [lambda s: s.solve(save_at=t1),
-       lambda s: s.with_values({Model.x: 2.0}).solve(save_at=t2)],   # second experiment
+      [lambda s: s.with_times(save_at=t1).solve(),
+       lambda s: s.with_values({Model.x: 2.0}).with_times(save_at=t2).solve()],   # second experiment
       [make_target({Model.x: x1}, t1), make_target({Model.x: x2}, t2)],
       p0={Model.k: (0.5, 0, 5)},
       sigma=None,          # or one sigma per target
@@ -191,8 +191,9 @@ Gillespie simulation of reaction networks (`MassAction` and `RateLaw` only) via 
 ```python
 from poincare.reactions.rebop import RebopSimulator   # also simbio.rebop, jablonski.rebop
 
-rsim = RebopSimulator(Model).with_values({Model.A: 100})
-ds = rsim.solve(upto_t=10, n_points=100, rng=1)   # n_points equal intervals → n_points + 1 rows
+rsim = RebopSimulator(Model).with_values({Model.A: 100}).with_times(upto_t=10, n_points=100)
+ds = rsim.solve(rng=1)   # n_points equal intervals → n_points + 1 rows
+# poincare 1.2.0 has no with_times: rsim.solve(upto_t=10, n_points=100, rng=1)
 ```
 
 - Variables are integer copy numbers. In 1.2.0, **variable values may not carry units**
@@ -203,8 +204,12 @@ ds = rsim.solve(upto_t=10, n_points=100, rng=1)   # n_points equal intervals →
 - Average many runs (`xr.concat([... for seed in range(n)], dim="run").mean("run")`) before
   comparing with the ODE solution.
 - **Newer than 1.2.0:**
-  - `rsim.solve(upto_t=, n_points=100, rng=1, n_runs=50)` returns the average of 50 runs
+  - `rsim.with_times(upto_t=, n_points=100).solve(rng=1, n_runs=50)` returns the average of 50 runs
     with independent random streams. `n_runs > 1` requires `n_points`.
+  - `RebopSimulator.with_times(upto_t=, n_points=None)` (recommended) stores the times so
+    `rsim.solve(rng=1)` can be called without them. `solve(upto_t=, n_points=)` still
+    works, and each argument not passed to `solve` falls back to its stored value
+    independently.
   - `RebopSimulator.with_transform(...)` works as on `Simulator` (use `append=True` to
     keep the copy numbers).
   - Variable values with units are accepted. Their magnitudes are used as copy numbers

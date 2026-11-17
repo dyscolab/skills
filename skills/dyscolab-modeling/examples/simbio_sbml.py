@@ -23,13 +23,17 @@ Decay = sbml.load(path)  # a poincare System class; pass name=... if the SBML mo
 print(Decay)  # summary table of variables, parameters and equations
 assert {"X", "k", "deg"} <= set(vars(Decay))
 
-sim = Simulator(Decay).with_solver(solvers.LSODA(rtol=1e-9, atol=1e-12))
 t = np.linspace(0, 6, 31)
-result = sim.solve(save_at=t)
+sim = (
+    Simulator(Decay)
+    .with_solver(solvers.LSODA(rtol=1e-9, atol=1e-12))
+    .with_times(save_at=t)
+)
+result = sim.solve()
 np.testing.assert_allclose(result["X"].values, 10 * np.exp(-0.5 * t), rtol=1e-6)
 
 # Parameters and initial values are changed like in any other model.
-faster = sim.with_values({Decay.k: 1.0, Decay.X: 5}).solve(save_at=t)
+faster = sim.with_values({Decay.k: 1.0, Decay.X: 5}).solve()
 np.testing.assert_allclose(faster["X"].values, 5 * np.exp(-1.0 * t), rtol=1e-6)
 
 # The same model from a string; `name` is required when the SBML has no name.

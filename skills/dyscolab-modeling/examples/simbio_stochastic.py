@@ -16,15 +16,13 @@ class Decay(System):
     degradation = MassAction(reactants=[A], products=[], rate=0.5)
 
 
-rsim = RebopSimulator(Decay)
 # n_points equally spaced samples after t = 0, so n_points + 1 time points.
-runs = xr.concat(
-    [rsim.solve(upto_t=4, n_points=8, rng=seed) for seed in range(40)], dim="run"
-)
+rsim = RebopSimulator(Decay).with_times(upto_t=4, n_points=8)
+runs = xr.concat([rsim.solve(rng=seed) for seed in range(40)], dim="run")
 mean = runs["A"].mean("run")
 t = mean["time"].values
 np.testing.assert_allclose(mean.values, 500 * np.exp(-0.5 * t), rtol=0.05)
 
 # The same model runs deterministically with the ODE simulator.
-ode = Simulator(Decay).solve(save_at=t)
+ode = Simulator(Decay).with_times(save_at=t).solve()
 np.testing.assert_allclose(ode["A"].values, 500 * np.exp(-0.5 * t), rtol=1e-2)

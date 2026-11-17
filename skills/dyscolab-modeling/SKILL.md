@@ -57,13 +57,20 @@ class Decay(System):
     k: Parameter = assign(default=0.5 / u.s)
     decay = x.derive() << -k * x                 # dx/dt = -k x
 
-sim = Simulator(Decay).with_solver(solvers.LSODA(rtol=1e-8, atol=1e-12))
-result = sim.solve(save_at=np.linspace(0, 10, 101) * u.s)   # xarray Dataset with units
+sim = (
+    Simulator(Decay)
+    .with_solver(solvers.LSODA(rtol=1e-8, atol=1e-12))
+    .with_times(save_at=np.linspace(0, 10, 101) * u.s)
+)
+result = sim.solve()   # xarray Dataset with units
 result.pint.dequantify().to_dataframe().plot()
 ```
 
 Declare (a symbolic class) → `Simulator` (compiles once) → `with_values` / `with_transform` /
-`with_solver` (cheap, immutable copies) → `solve(save_at=...)` → xarray `Dataset`.
+`with_solver` / `with_times` (cheap, immutable copies) → `solve()` → xarray `Dataset`.
+Set the times with `with_times(save_at=...)` (`RebopSimulator`:
+`with_times(upto_t=..., n_points=...)`). poincare 1.2.0 has no `with_times`: there, pass the
+same arguments to `solve` (`sim.solve(save_at=...)`), which newer versions still accept.
 
 ## Rules that prevent most errors
 
@@ -71,7 +78,8 @@ Declare (a symbolic class) → `Simulator` (compiles once) → `with_values` / `
 - **`Simulator` is immutable.** `with_*` returns a new one. Set the solver only with
   `.with_solver(...)`: in 1.2.0, `Simulator(..., solver=...)` is silently ignored, and
   newer versions reject it.
-- **Integration starts at `save_at[0]`** (the time span is inferred from `save_at`), so
+- **Integration starts at `save_at[0]`** (the time span is inferred from `save_at` unless
+  `t_span` is given), so
   the initial values belong to that time. Start `save_at` at 0 when they belong to t = 0.
 - **The default tolerances (rtol 1e-3) are too loose for quantitative work**, and steady
   states inherit them. Use `solvers.LSODA(rtol=1e-8, atol=...)` with `atol` far below the

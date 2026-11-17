@@ -59,7 +59,7 @@ class BindingAmountAB(Compartment):
 
 
 save_at = np.linspace(0, 30, 61) * u.s
-conc = Simulator(Binding).with_solver(TIGHT).solve(save_at=save_at)
+conc = Simulator(Binding).with_solver(TIGHT).with_times(save_at=save_at).solve()
 
 # Conservation: A + AB and B + AB are constant.
 total_A = (conc["A"] + conc["AB"]).pint.to(u.mM).pint.dequantify().values
@@ -75,8 +75,9 @@ np.testing.assert_allclose(steady["AB"].pint.to(u.mM).pint.dequantify().item(), 
 amt = (
     Simulator(BindingAmountAB)
     .with_solver(TIGHT)
+    .with_times(save_at=save_at)
     .with_transform({"AB_conc": BindingAmountAB.AB / BindingAmountAB.V}, append=True)
-    .solve(save_at=save_at)
+    .solve()
 )
 np.testing.assert_allclose(
     amt["AB_conc"].pint.to(u.mM).pint.dequantify().values,

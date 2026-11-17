@@ -84,6 +84,7 @@ add them.
 | A `Fitter` class, `fit_steady_state`, fit covariances | `fit_result` (best values only) | `Fitter`, `fit_steady_state`, `FitResult.pcov` |
 | `poincare.strip_units` | Build the model without units, or dequantify results | `poincare.strip_units` |
 | `n_runs` argument on rebop solvers | A loop over seeds + `xr.concat(...).mean("run")` | `n_runs=` on `RebopSimulator.solve` and the jablonski rebop functions |
+| `Simulator.with_times`, `RebopSimulator.with_times` | Pass the times to `solve` (`save_at=`, `t_span=`; rebop: `upto_t=`, `n_points=`) | `with_times` (recommended) |
 | `RebopSimulator.with_transform` | Compute derived outputs from the result | `with_transform` |
 | A `Parameter` as a reactant (constant species) | Fold the constant into the rate (`rate=k * G_value`) | `Parameter` reactants |
 | Generic jablonski names (`time_resolved`, `steady_state`, `spectra`, …) | The `*_emission` functions (kept as wrappers in newer versions) | Generic names |

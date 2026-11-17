@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Recommend `with_times` (poincare newer than 1.2.0) to set the simulation times:
+  `Simulator.with_times(t_span=, save_at=)` and `RebopSimulator.with_times(upto_t=,
+  n_points=)`, with `solve()` called without times. Times passed to `solve` still work and
+  fall back to the stored ones independently. The examples use it and are skipped on
+  poincare 1.2.0, where the times go to `solve`.
 - Document jablonski's `TripletTripletAnnihilation` (newer than 0.4.0): T + T → S + S
   between four possibly different levels, and the 0.4.0 workaround with a custom
   `MassAction`.
