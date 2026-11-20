@@ -123,6 +123,27 @@ same arguments to `solve` (`sim.solve(save_at=...)`), which newer versions still
   For jablonski spectra over a list of pumper excitations, use the `jablonski.sweeps`
   helpers.
 
+## Trust the libraries, check the declaration
+
+- **Assume the libraries are correct.** A correctly declared model generates the right
+  equations and simulates correctly. When results look wrong, look for the cause in the
+  model first: a wrong sign or rate, a missing or duplicated process (equations for the
+  same derivative add up), units, initial values, tolerances or the time span. Don't
+  re-derive the equations by hand, write a parallel scipy/numpy implementation "to
+  check", or patch around the library.
+- **Compare equations against a reference with the generated report**, not by reading the
+  code. When checking a model against a paper, textbook or the user's equations, render
+  `notebook_report(Model)` in a notebook (`show=False` returns the Markdown string) or
+  `print(model_report(Model))` in a script, and compare that output term by term with the
+  reference. Use the library's report (simbio and jablonski add reactions and the
+  Jablonski diagram). The report shows what the library actually integrates.
+- **If something still looks like a library bug** (the report shows the intended
+  equations but the simulation contradicts them, a crash inside the library, results
+  that change with an unrelated setting), say so, keep the smallest reproducing example,
+  and propose to the user to open a bug report at `github.com/dyscolab/<library>/issues`
+  with that example, the installed versions and the expected and actual results. Use a
+  documented workaround meanwhile, if there is one.
+
 ## Workflow suggestions
 
 The stages below are building blocks, not a fixed pipeline: combine the ones the task
