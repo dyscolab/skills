@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- The skill is now bundled with the libraries: poincare, simbio and jablonski each ship
+  their part and install it to `<environment>/share/agent-skills/dyscolab-modeling/`
+  (found by `pixi skills`), and `python -m poincare.skill install` copies it into an
+  agent's skills folder. This repository's copy is generated from the libraries with
+  `pixi run build` (`scripts/build_skill.py`) and must not be edited by hand.
+- New "Versions and environment" section: lists the documented releases, tells the agent
+  to check the installed versions and to switch to the bundled skill when they differ.
+  Libraries are installed with the tool that manages the environment (pixi, conda, uv,
+  pip), from PyPI or conda-forge.
+- The API inventory is split per library: `api-inventory.md` (poincare), `simbio-api.md`
+  and `jablonski-api.md`.
+- The examples no longer have version-specific skips: they come from the libraries they
+  are built from.
+
 - New guidance for implementing a model from a publication: keep the source's units,
   symbols and relations, and cite the source for every value.
 - Model conventions (now for all models, not only larger ones): write the model directly

@@ -2,10 +2,10 @@
 name: dyscolab-modeling
 description: Declare, simulate and analyse dynamical models in Python with the Dyscolab libraries - poincare (ODE systems, steady states, sweeps, oscillations, fits), simbio (chemical reaction networks, compartments and volumes, SBML/BioModels import, stochastic Gillespie runs) and jablonski (photophysics - Jablonski diagrams, absorption/fluorescence/phosphorescence, energy transfer and upconversion, spectra, quantum yields, pulsed excitation). Use when the user wants to model kinetics, reaction networks, ODEs or photophysical systems, or mentions poincare, simbio or jablonski.
 license: MIT
-compatibility: Python >= 3.12 (SBML import needs Python >= 3.14 with simbio 1.2.0). Documents poincare 1.2.x, simbio 1.2.x and jablonski 0.4.x.
+compatibility: Python >= 3.12. Documents poincare 1.2.0, simbio 1.2.0 and jablonski 0.4.0.
 metadata:
   version: "1.0.0"
-  libraries: "poincare==1.2.*, simbio==1.2.*, jablonski==0.4.*"
+  libraries: "poincare==1.2.0, simbio==1.2.0, jablonski==0.4.0"
 ---
 
 # Dyscolab modeling
@@ -14,23 +14,48 @@ poincare declares ODE systems as Python classes and simulates them. simbio (reac
 networks) and jablonski (photophysics) build on it, so their models are poincare `System`s
 and share the same simulator, units and analysis tools.
 
+<!-- dyscolab-skill:versions-section:start -->
+## Versions and environment
+
+This copy of the skill is distributed **separately from the libraries**
+([github.com/dyscolab/skills](https://github.com/dyscolab/skills), skill version
+1.0.0). It documents these releases:
+
+- poincare 1.2.0
+- simbio 1.2.0
+- jablonski 0.4.0
+
+**Check the installed versions** in the environment you work in before writing code, with
+that environment's Python:
+
+```python
+from importlib.metadata import version
+print({p: version(p) for p in ("poincare", "simbio", "jablonski")})
+```
+
+If they differ from the list above:
+
+- **If `python -m poincare.skill` exists** (poincare releases after 1.2.0), the
+  libraries bundle this skill at the installed versions. Use that one instead:
+  `python -m poincare.skill install --dest <agent skills folder>` copies it (in pixi
+  projects, `pixi skills manage` can link it instead). Then remove this copy with the
+  tool that installed it (the skills CLI or the Claude Code plugin manager), so that
+  only one `dyscolab-modeling` skill is left.
+- **Otherwise**, update this copy with the tool that installed it, or read the installed
+  sources where they disagree with this skill.
+
+**Installing the libraries:** poincare and jablonski are published on PyPI and
+conda-forge, simbio and rebop (stochastic runs) on PyPI. simbio's SBML import needs its
+`io` extra (`simbio[io]`). Install them with the tool that manages the project's
+environment (pixi, conda/mamba, uv, pip, …), and don't mix tools in one environment.
+
+Notes marked "newer than" a release describe what changed after that release. If the
+installed source disagrees with this skill, the installed source wins.
+<!-- dyscolab-skill:versions-section:end -->
+
 ## Before writing code
 
-1. **Check the installed versions.** This skill documents poincare 1.2, simbio 1.2 and
-   jablonski 0.4:
-
-   ```python
-   from importlib.metadata import version
-   print({p: version(p) for p in ("poincare", "simbio", "jablonski")})
-   ```
-
-   If they are missing, install them with `pip install poincare simbio jablonski`. Add
-   `"simbio[io]"` for SBML and `rebop` for stochastic runs, and use the project's own
-   environment manager when there is one. Notes marked "newer than" a release describe the
-   libraries' `main` branches (installed from GitHub), which add features and change a few
-   names. If a newer version is installed and something here fails, read the installed
-   source; it wins over this skill.
-2. **Pick the library.**
+1. **Pick the library.**
 
    | The system is… | Use | Reference |
    | --- | --- | --- |
@@ -40,7 +65,7 @@ and share the same simulator, units and analysis tools.
 
    They mix freely: a jablonski model can contain plain poincare equations, and the analysis
    tools in [references/analysis.md](references/analysis.md) work for all three.
-3. **Use units** (pint) when the user gives physical values. jablonski always needs them.
+2. **Use units** (pint) when the user gives physical values. jablonski always needs them.
    Read [references/units.md](references/units.md) first.
 
 ## Core pattern
@@ -219,8 +244,10 @@ reusable subsystems): [references/workflows.md](references/workflows.md).
   transitions, excitation, spectra, quantum yields, fits.
 - [references/workflows.md](references/workflows.md): workflow suggestions, file layout, conventions,
   validation.
-- [references/api-inventory.md](references/api-inventory.md): every public name in these
-  versions, internal helpers, and what does *not* exist yet.
+- [references/api-inventory.md](references/api-inventory.md),
+  [references/simbio-api.md](references/simbio-api.md),
+  [references/jablonski-api.md](references/jablonski-api.md): every public name, internal
+  helpers, and what does *not* exist in older versions.
 - `examples/`: runnable, tested scripts that each end with physics checks:
   - `poincare_oscillator.py`, `poincare_steady_state_sweep.py`
   - `simbio_compartments.py`, `simbio_sbml.py`, `simbio_stochastic.py`

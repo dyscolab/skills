@@ -9,7 +9,7 @@ matplotlib = "*"
 networkx = "*"
 pyyaml = "*"
 
-# The library versions documented by the skill on this branch.
+# The library releases the skill is built from (`pixi run build`).
 [pypi-dependencies]
 poincare = "==1.2.0"
 simbio = { version = "==1.2.0", extras = ["io"] }
@@ -17,6 +17,7 @@ jablonski = "==0.4.0"
 rebop = "*"
 
 [tasks]
+build = "python scripts/build_skill.py"
 test = "pytest tests"
 
 [feature.py312.dependencies]

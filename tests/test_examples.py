@@ -1,45 +1,28 @@
-import inspect
-import sys
+"""Run every example of the built skill.
+
+The examples come from the libraries (see scripts/build_skill.py), so they match the
+installed versions and need no version-specific skips.
+"""
+
+import importlib.util
+import os
 from pathlib import Path
 from runpy import run_path
 
 import matplotlib
 import pytest
-from poincare import Simulator
 
 matplotlib.use("Agg")
 
-EXAMPLES = Path(__file__).parents[1] / "skills" / "dyscolab-modeling" / "examples"
-examples = sorted(EXAMPLES.glob("*.py"))
-
-# simbio 1.2.0's SBML/MathML import needs Python >= 3.14 (NameError on older versions).
-needs_py314 = {"simbio_sbml.py"}
-
-# Simulator.with_times / RebopSimulator.with_times are newer than poincare 1.2.0.
-needs_with_times = {
-    "poincare_oscillator.py",
-    "simbio_compartments.py",
-    "simbio_sbml.py",
-    "simbio_stochastic.py",
-}
-
-# save_at=None in jablonski's simulation functions is newer than jablonski 0.4.0.
-needs_jablonski_times = {"jablonski_quantum_yield.py", "jablonski_upconversion.py"}
-
-
-def _jablonski_takes_times_from_simulator() -> bool:
-    from jablonski.simulation import piecewise
-
-    return inspect.signature(piecewise).parameters["save_at"].default is None
+# DYSCOLAB_SKILLS_DIR: a folder of built skills (the workspace's test-skills task).
+SKILLS = Path(os.environ.get("DYSCOLAB_SKILLS_DIR", Path(__file__).parents[1] / "skills"))
+examples = sorted(SKILLS.glob("*/examples/*.py"))
+NEEDS = {"simbio_sbml.py": "libsbml", "simbio_stochastic.py": "rebop"}
 
 
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.parametrize("example", examples, ids=[p.stem for p in examples])
 def test_example(example: Path):
-    if example.name in needs_py314 and sys.version_info < (3, 14):
-        pytest.skip("simbio 1.2.0 SBML import requires Python >= 3.14")
-    if example.name in needs_with_times and not hasattr(Simulator, "with_times"):
-        pytest.skip("with_times requires poincare newer than 1.2.0")
-    if example.name in needs_jablonski_times and not _jablonski_takes_times_from_simulator():
-        pytest.skip("times from with_times require jablonski newer than 0.4.0")
+    if (module := NEEDS.get(example.name)) and importlib.util.find_spec(module) is None:
+        pytest.skip(f"needs {module}")
     run_path(str(example), run_name="test")
