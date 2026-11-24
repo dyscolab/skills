@@ -20,3 +20,12 @@ jobs:
         with:
           environments: ${{ matrix.environment }}
       - run: pixi run -e ${{ matrix.environment }} test
+
+  generated:
+    # skills/ must be exactly what scripts/build_skill.py builds from the pinned releases.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: prefix-dev/setup-pixi@v0.8.1
+      - run: pixi run build
+      - run: git diff --exit-code skills/ && test -z "$(git status --porcelain skills/)"

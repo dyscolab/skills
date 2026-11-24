@@ -18,7 +18,7 @@ print({p: version(p) for p in ("poincare", "simbio", "jablonski")})
 
 If they differ from the list above:
 
-- **If `python -m poincare.skill` exists** (poincare releases after 1.2.0), the
+- **If `python -m poincare.skill` exists** (poincare 1.3.0 and newer), the
   libraries bundle this skill at the installed versions. Use that one instead:
   `python -m poincare.skill install --dest <agent skills folder>` copies it (in pixi
   projects, `pixi skills manage` can link it instead). Then remove this copy with the

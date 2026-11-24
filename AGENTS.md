@@ -14,7 +14,8 @@ agents that use poincare, simbio and jablonski. This file is for agents that edi
 - **This repository distributes a separate copy** for agents whose users install skills
   without the libraries (skills CLI, Claude Code plugin marketplace, manual copy).
   `skills/dyscolab-modeling/` is **generated** by `scripts/build_skill.py` from the
-  libraries installed at the versions pinned in `pixi.toml`. Never edit it by hand.
+  libraries installed at the versions pinned in `pixi.toml`. Never edit it by hand: the
+  `generated` CI job fails when it differs from a fresh build.
 - The build replaces the "Versions and environment" section of SKILL.md, between
   `<!-- dyscolab-skill:versions-section:start -->` and `...:end -->`, with
   `templates/versions-section.md` (`$poincare`, `$simbio`, `$jablonski` and
@@ -61,10 +62,10 @@ pixi run -e py312 test        # also py313
 claude plugin validate .      # marketplace manifest (optional, needs Claude Code)
 ```
 
-The build needs a poincare release that ships `poincare.skill` (newer than 1.2.0). Until
-then, build and test from the u2602 workspace, where `pixi run test-skills` builds the
-skill from the development sources of all libraries into `.build/` and runs these tests
-on it.
+The build needs poincare >= 1.3.0 (the first release with `poincare.skill`). In the u2602
+workspace, `pixi run test-skills` builds the skill from the development sources of all
+libraries into `.build/` and runs these tests on it, to catch problems before a library
+release.
 
 ## Commits
 

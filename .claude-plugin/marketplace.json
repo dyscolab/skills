@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Agent skills for the Dyscolab scientific Python libraries (poincare, simbio, jablonski)",
-    "version": "1.0.0"
+    "version": "1.3.0"
   },
   "plugins": [
     {
       "name": "dyscolab",
       "displayName": "Dyscolab modeling",
       "description": "Declare, simulate and analyse ODE, reaction-network and photophysics models with poincare, simbio and jablonski",
-      "version": "1.0.0",
+      "version": "1.3.0",
       "license": "MIT",
       "homepage": "https://github.com/dyscolab/skills",
       "repository": "https://github.com/dyscolab/skills",

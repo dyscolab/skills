@@ -7,7 +7,7 @@ the Dyscolab libraries:
 | --- | --- |
 | [`dyscolab-modeling`](skills/dyscolab-modeling/SKILL.md) | Declaring, simulating and analysing models with [poincare](https://github.com/dyscolab/poincare) (ODEs), [simbio](https://github.com/dyscolab/simbio) (reaction networks, compartments, SBML) and [jablonski](https://github.com/dyscolab/jablonski) (photophysics) |
 
-The skill on `main` documents **poincare 1.2.x, simbio 1.2.x and jablonski 0.4.x**.
+The skill on `main` documents **poincare 1.3.0, simbio 1.3.0 and jablonski 0.5.0**.
 
 ## Install
 
@@ -18,7 +18,7 @@ Skills.
 
 poincare, simbio and jablonski ship the skill and install it into the environment at
 `<environment>/share/agent-skills/dyscolab-modeling/`, matching the installed versions
-(poincare releases after 1.2.0).
+(poincare 1.3.0 and newer).
 
 **pixi projects:** link it into the agent's skills folder with
 [pixi skills](https://pixi.prefix.dev/dev/integration/extensions/pixi_skills/). The

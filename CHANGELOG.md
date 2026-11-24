@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.3.0
+
+Documents poincare 1.3.0, simbio 1.3.0 and jablonski 0.5.0.
 
 - The skill is now bundled with the libraries: poincare, simbio and jablonski each ship
   their part and install it to `<environment>/share/agent-skills/dyscolab-modeling/`
